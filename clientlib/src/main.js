@@ -8,7 +8,7 @@ async function buildAnonVote(chainID, nLevels, web3gateway) {
 	return new AnonVote(poseidon, eddsa, chainID, nLevels, web3gateway);
 }
 
-// AnonVote contains all the logic to build the data strucutres to vote, build
+// AnonVote contains all the logic to build the data structures to vote, build
 // censuses, interact with the Smart Contracts, etc.
 class AnonVote {
 	constructor(poseidon, eddsa, chainID, nLevels, web3gw) {
