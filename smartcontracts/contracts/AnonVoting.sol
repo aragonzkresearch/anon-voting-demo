@@ -32,10 +32,6 @@ contract AnonVoting {
     uint256 public lastProcessID; // Initialized at 0, incremented by 1 every time a new process is created
     mapping(uint256 => Process) public processes; // Mapping of processID => Process
 
-    // Default process result evaluation constants
-    uint8 public minTurnout; // % of voters that must vote in order for the proposal to be valid (Quorum), 1 = 1%, 100 = 100%
-    uint8 public minMajority; // % of voters to be in favour from all voted voters, 1 = 1%, 100 = 100%
-
     // Modifier to check if a process exists
     modifier processExists(uint256 _processID) {
         require(lastProcessID >= _processID && _processID != 0, "Process does not exist");
@@ -49,16 +45,16 @@ contract AnonVoting {
     // Event to be emitted when a process is closed
     event ProcessClosed(uint256 processID, bool passed);
 
-    // Constructor defines the default minTurnout and minMajority for the future processes
-    constructor(uint8 _minTurnout, uint8 _minMajority) {
-        minTurnout = _minTurnout;
-        minMajority = _minMajority;
+    // Constructor
+    // TODO: add a parameter to set the Verifier contract address
+    constructor() {
+
     }
 
     // Function to create a new process
     // Increments the lastProcessID, and stores the new Process into `processes` mapping
     // Note: the first process will have processID = 1 (not 0)
-    function newProcess(string memory _topic, uint256 _censusRoot, uint256 _startBlockNum, uint256 _endBlockNum) external {
+    function newProcess(string memory _topic, uint256 _censusRoot, uint256 _startBlockNum, uint256 _endBlockNum, uint8 _minTurnout, uint8 _minMajority) external {
         lastProcessID++; // Increment lastProcessID by 1
         // Require that both the start and end block numbers are in the future
         require(_startBlockNum > block.number, "Start block number must be in the future");
@@ -70,12 +66,12 @@ contract AnonVoting {
         process.censusRoot = _censusRoot;
         process.startBlockNum = _startBlockNum;
         process.endBlockNum = _endBlockNum;
-        process.minTurnout = minTurnout;
-        process.minMajority = minMajority;
+        process.minTurnout = _minTurnout;
+        process.minMajority = _minMajority;
         // `yes` and `no` votes are already initialized at 0
 
         // Emit the NewProcess event
-        emit NewProcess(lastProcessID, msg.sender, _topic, _startBlockNum, _endBlockNum, _censusRoot, minTurnout, minMajority);
+        emit NewProcess(lastProcessID, msg.sender, _topic, _startBlockNum, _endBlockNum, _censusRoot, _minTurnout, _minMajority);
     }
 
     // Function to vote in a process

@@ -6,31 +6,25 @@ const { expect } = require("chai");
 // Import the describe function from mocha for explicitness
 
 describe("AnonVoting", function () {
+    // We define the default values for the minTurnout and minMajority
+    const DEFAULT_MIN_TURNOUT = 25; // 25%
+    const DEFAULT_MIN_MAJORITY = 50; // 50%
+    
   // We define a fixture to reuse the same setup in every test.
   // We use loadFixture to run this setup once, snapshot that state,
   // and reset Hardhat Network to that snapshot in every test.
   async function deployAnonVotingFixture() {
 
-    const DEFAULT_MIN_TURNOUT = 25; // 25%
-    const DEFAULT_MIN_MAJORITY = 50; // 50%
-
     // Contracts are deployed using the first signer/account by default
     const [owner, otherAccount] = await ethers.getSigners();
 
     const AnonVoting = await ethers.getContractFactory("AnonVoting");
-    const anonVoting = await AnonVoting.deploy(DEFAULT_MIN_TURNOUT, DEFAULT_MIN_MAJORITY);
+    const anonVoting = await AnonVoting.deploy();
 
-    return { anonVoting, DEFAULT_MIN_TURNOUT, DEFAULT_MIN_MAJORITY, owner, otherAccount };
+    return { anonVoting, owner, otherAccount };
   }
 
   describe("Deployment", function () {
-    it("Should set MinTurnout and MinMajority to the correct value", async function () {
-      const { anonVoting, DEFAULT_MIN_TURNOUT, DEFAULT_MIN_MAJORITY } = await loadFixture(deployAnonVotingFixture);
-
-      expect(await anonVoting.minTurnout()).to.equal(DEFAULT_MIN_TURNOUT);
-      expect(await anonVoting.minMajority()).to.equal(DEFAULT_MIN_MAJORITY);
-    });
-
 
     it("Should set the lastProcessID to 0", async function () {
       const { anonVoting } = await loadFixture(deployAnonVotingFixture);
@@ -41,35 +35,35 @@ describe("AnonVoting", function () {
 
   describe("createProcess", function () {
     it("Should create a new process and set its details correctly", async function () {
-      const {anonVoting, DEFAULT_MIN_TURNOUT, DEFAULT_MIN_MAJORITY, owner } = await loadFixture(deployAnonVotingFixture);
+        const {anonVoting, owner } = await loadFixture(deployAnonVotingFixture);
 
-      const processID = await anonVoting.lastProcessID() + 1;
-      const processTopic = "Test process";
-      const startBlockNum = (await ethers.provider.getBlock("latest")).timestamp + 1000;
-      const endBlockNum = startBlockNum + 1000;
-      const censusRoot = "0x0000000000000000000000000000000000000000000000000000000000000000"; // We don't use censuses in this test
+        const processID = await anonVoting.lastProcessID() + 1;
+        const processTopic = "Test process";
+        const startBlockNum = (await ethers.provider.getBlock("latest")).timestamp + 1000;
+        const endBlockNum = startBlockNum + 1000;
+        const censusRoot = "0x0000000000000000000000000000000000000000000000000000000000000000"; // We don't use censuses in this test
 
-      await anonVoting.newProcess(processTopic, censusRoot, startBlockNum, endBlockNum);
+        await anonVoting.newProcess(processTopic, censusRoot, startBlockNum, endBlockNum, DEFAULT_MIN_TURNOUT, DEFAULT_MIN_MAJORITY);
 
-      expect(await anonVoting.lastProcessID()).to.equal(processID);
+        expect(await anonVoting.lastProcessID()).to.equal(processID);
 
-      // Get the process details
-      const processDetails = await anonVoting.processes(processID);
+        // Get the process details
+        const processDetails = await anonVoting.processes(processID);
 
-      expect(processDetails.creator).to.equal(owner.address);
-      expect(processDetails.topic).to.equal(processTopic);
+        expect(processDetails.creator).to.equal(owner.address);
+        expect(processDetails.topic).to.equal(processTopic);
 
-      expect(processDetails.startBlockNum).to.equal(startBlockNum);
-      expect(processDetails.endBlockNum).to.equal(endBlockNum);
+        expect(processDetails.startBlockNum).to.equal(startBlockNum);
+        expect(processDetails.endBlockNum).to.equal(endBlockNum);
 
-      expect(processDetails.censusRoot).to.equal(censusRoot);
-      // We can not check the nullifiers map because it is a mapping
+        expect(processDetails.censusRoot).to.equal(censusRoot);
+        // We can not check the nullifiers map because it is a mapping
 
-      expect(processDetails.minTurnout).to.equal(DEFAULT_MIN_TURNOUT);
-      expect(processDetails.minMajority).to.equal(DEFAULT_MIN_MAJORITY);
+        expect(processDetails.minTurnout).to.equal(DEFAULT_MIN_TURNOUT);
+        expect(processDetails.minMajority).to.equal(DEFAULT_MIN_MAJORITY);
 
-      expect(processDetails.yesVotes).to.equal(0);
-      expect(processDetails.noVotes).to.equal(0);
+        expect(processDetails.yesVotes).to.equal(0);
+        expect(processDetails.noVotes).to.equal(0);
     });
 
     it("Should not create a process with an incorrect startBlockNum", async function () {
@@ -83,8 +77,8 @@ describe("AnonVoting", function () {
       const censusRoot = "0x0000000000000000000000000000000000000000000000000000000000000000"; // We don't use censuses in this test
 
       // This should throw an error because the startBlockNum is in the past
-      await expect(anonVoting.newProcess(processTopic, censusRoot, startBlockNum, endBlockNum))
-          .to.be.rejectedWith(/revert/);
+      await expect(anonVoting.newProcess(processTopic, censusRoot, startBlockNum, endBlockNum, DEFAULT_MIN_TURNOUT, DEFAULT_MIN_MAJORITY))
+          .to.be.rejectedWith("Start block number must be in the future");
 
       // Make sure the process wasn't created
       expect(await anonVoting.lastProcessID()).to.equal(processID);
@@ -100,8 +94,8 @@ describe("AnonVoting", function () {
       const censusRoot = "0x0000000000000000000000000000000000000000000000000000000000000000"; // We don't use censuses in this test
 
       // This should throw an error because endBlockNum must be greater than startBlockNum
-      await expect(anonVoting.newProcess(processTopic, censusRoot, startBlockNum, endBlockNum))
-          .to.be.rejectedWith(/revert/);
+      await expect(anonVoting.newProcess(processTopic, censusRoot, startBlockNum, endBlockNum, DEFAULT_MIN_TURNOUT, DEFAULT_MIN_MAJORITY))
+          .to.be.rejectedWith("End block number must be after start block number");
 
       // Make sure the process wasn't created
       expect(await anonVoting.lastProcessID()).to.equal(processID);
@@ -118,9 +112,9 @@ describe("AnonVoting", function () {
     const endBlockNum = startBlockNum + 1000;
     const censusRoot = "0x0000000000000000000000000000000000000000000000000000000000000000"; // We don't use censuses in this test
 
-    await anonVoting.newProcess(processTopic, censusRoot, startBlockNum, endBlockNum);
+    await anonVoting.newProcess(processTopic, censusRoot, startBlockNum, endBlockNum, DEFAULT_MIN_TURNOUT, DEFAULT_MIN_MAJORITY);
 
-    return { anonVoting, owner, processID, processTopic, startBlockNum, endBlockNum, censusRoot };
+    return { anonVoting, owner, processID, processTopic, startBlockNum, endBlockNum, censusRoot, minTurnout: DEFAULT_MIN_TURNOUT, minMajority: DEFAULT_MIN_MAJORITY };
 
   }
 
