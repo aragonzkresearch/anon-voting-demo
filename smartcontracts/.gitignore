@@ -1,0 +1,10 @@
+# NPM dependencies
+node_modules
+/package-lock.json
+
+# Hardhat files
+cache
+artifacts
+
+# Files with sensitive data
+.env
