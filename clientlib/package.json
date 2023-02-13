@@ -7,7 +7,7 @@
 	},
 	"scripts": {
 		"pretest": "mkdir -p test/circuits",
-		"test": "mocha --max-old-space-size=4000"
+		"test": "npx hardhat test"
 	},
 	"author": "AragonZKResearch",
 	"license": "GPL-3.0",
