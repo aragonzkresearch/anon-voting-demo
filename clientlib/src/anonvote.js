@@ -92,18 +92,16 @@ class AnonVote {
 		return {publicInputs: publicInputs};
 	}
 
-	// methods containing the logic of interacting with SmartContracts &
-	// servers. Only available if web3gateway is defined.
-	// Recieves the AnonVoting contract and the processID as parameters
-	async getProcesses(processID) {
+	// Method to get the information of a process
+	async getProcess(processID) {
 		if (!this.web3gw) {
 			throw new Error("web3gw not defined. Use connect() first");
 		}
 
-		const process = await anonVoting.getProcesses(processID);
+		const process = await this.anonVoting.processes(processID);
 
 		// Check if the process exists
-		if (process.creator === 0) {
+		if (process.creator === "0x0000000000000000000000000000000000000000") {
 			return null;
 		}
 
@@ -112,8 +110,8 @@ class AnonVote {
 			processID: processID,
 			creator: process.creator,
 			topic: process.topic,
-			startBlock: process.startBlock,
-			endBlock: process.endBlock,
+			startBlock: process.startBlockNum,
+			endBlock: process.endBlockNum,
 			censusRoot: process.censusRoot,
 			minMajority: process.minMajority,
 			minTurnout: process.minTurnout,
@@ -123,8 +121,44 @@ class AnonVote {
 		};
 	}
 
-	getProcess() {}
-	checkIfVoted() {}
+	// Method to get all the processes in the AnonVoting contract
+	async getProcesses() {
+		if (!this.web3gw) {
+			throw new Error("web3gw not defined. Use connect() first");
+		}
+
+		// Get the lastProcessID
+		const lastProcessID = await this.anonVoting.lastProcessID();
+
+		// For each processID until lastProcessID, get the process
+		// Note that the indexing is moved by 1, so the first processID is 1
+		const processes = [];
+		for (let i = 1; i <= lastProcessID; i++) {
+			const process = await this.getProcess(i);
+			processes.push(process);
+		}
+
+		return processes;
+	}
+
+	// Method to generate a new process in the AnonVoting contract
+	async newProcess(topic, censusRoot, startBlock, endBlock, minMajority, minTurnout, signer) {
+		if (!this.web3gw) {
+			throw new Error("web3gw not defined. Use connect() first");
+		}
+
+		const anonVotingWithSigner = this.anonVoting.connect(signer);
+
+
+
+		await anonVotingWithSigner.newProcess(topic, censusRoot, startBlock, endBlock, minMajority, minTurnout);
+
+
+		// Return the created processID
+		return  await this.anonVoting.lastProcessID();
+	}
+
+	checkIfVoted(voterAddress) {}
 	getProof() {}
 	getProvingKey() {}
 	closeProcess() {}

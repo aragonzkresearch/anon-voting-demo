@@ -2,12 +2,11 @@ const {
 	loadFixture,
 } = require("@nomicfoundation/hardhat-network-helpers");
 
-const { assert } = require("chai");
+const { assert, expect } = require("chai");
+const { ethers } = require("hardhat");
 
 const {buildAnonVote} = require("../src/anonvote.js");
 const {buildCensus} = require("../src/census.js");
-
-
 const fromHexString = (hexString) =>
 	new Uint8Array(hexString.match(/.{1,2}/g).map((byte) => parseInt(byte, 16)));
 
@@ -61,7 +60,7 @@ describe("ClientLib", function () {
 		// it to the Smart Contract.
 		async function contractFixture(nLevels = 16) {
 			// Contracts are deployed using the first signer/account by default
-			const web3gw = ethers.getDefaultProvider();
+			const web3gw = hre.ethers.provider;
 
 			// Deploy the AnonVoting Smart Contract
 			const anonVoting = await ethers.getContractFactory("AnonVoting");
@@ -100,9 +99,123 @@ describe("ClientLib", function () {
 			const process = await av.getProcess(processID);
 
 			// Check that the process is null
-			assert(process == null);
+			expect(process).to.be.null;
 		});
 
+		// Fixture to create a new process and return the processID and the AnonVote instance
+		async function newProcessWithoutZKFixture(nLevels = 16) {
+			// Load the fixture with the nLevels parameter
+			const { av, web3gw } = await loadFixture(contractFixture, nLevels);
+
+			// Set the parameters
+			const topic = "test";
+			const censusRoot = 1; // This is the root of the census tree, which is a hash of the public keys. Here we use 1 as a placeholder
+			const startBlock = 10;
+			const endBlock = 100;
+			const minTurnout = 1; // 1%
+			const minMajority = 51; // 51%
+
+			// Get the signer
+			const signer = (await ethers.getSigners())[0];
+
+			// Create the process
+			const processID = await av.newProcess(topic, censusRoot, startBlock, endBlock, minTurnout, minMajority, signer);
+
+			return {av, processID, signer, web3gw, nLevels };
+		}
+
+		it("Should create and get a new process (without zk)", async () => {
+
+			// Load the fixture with the nLevels parameter
+			const { av } = await loadFixture(contractFixture);
+
+			// Set the parameters
+			const topic = "test";
+			const censusRoot = 1; // This is the root of the census tree, which is a hash of the public keys. Here we use 1 as a placeholder
+			const startBlock = 10;
+			const endBlock = 100;
+			const minTurnout = 1; // 1%
+			const minMajority = 51; // 51%
+
+			// Get the signer
+			const signer = (await ethers.getSigners())[0];
+
+			// Create the process
+			const processID = await av.newProcess(topic, censusRoot, startBlock, endBlock, minTurnout, minMajority, signer);
+			expect(processID).to.equal(1);
+
+			// // Get the process that was just created
+			const process = await av.getProcess(processID);
+
+			// Check that the process is not null
+			expect(process).to.not.be.null;
+
+			// Check that the process has the correct parameters
+			expect(process.topic).to.equal(topic);
+			expect(process.censusRoot).to.equal(censusRoot);
+			expect(process.startBlock).to.equal(startBlock);
+			expect(process.endBlock).to.equal(endBlock);
+			expect(process.minTurnout).to.equal(minTurnout);
+			expect(process.minMajority).to.equal(minMajority);
+		});
+
+		it("Should create two processes and get them all", async () => {
+
+			// Load the fixture with the nLevels parameter
+			const { av } = await loadFixture(contractFixture);
+
+			// Set the parameters for the first process
+			const topicOne = "test 1";
+			const censusRootOne = 1; // This is the root of the census tree, which is a hash of the public keys. Here we use 1 as a placeholder
+			const startBlockOne = 10;
+			const endBlockOne = 100;
+			const minTurnoutOne = 1; // 1%
+			const minMajorityOne = 51; // 51%
+
+			// Get the signer
+			const signer = (await ethers.getSigners())[0];
+
+			// Create the process
+			const processID1 = await av.newProcess(topicOne, censusRootOne, startBlockOne, endBlockOne, minTurnoutOne, minMajorityOne, signer);
+			expect(processID1).to.equal(1);
+
+			// Set the parameters for the second process
+			const topicTwo = "test 2";
+			const censusRootTwo = 2; // This is the root of the census tree, which is a hash of the public keys. Here we use 2 as a placeholder
+			const startBlockTwo = 100;
+			const endBlockTwo = 200;
+			const minTurnoutTwo = 2; // 1%
+			const minMajorityTwo = 52; // 51%
+
+
+			// Create a second process
+			const processID2 = await av.newProcess(topicTwo, censusRootTwo, startBlockTwo, endBlockTwo, minTurnoutTwo, minMajorityTwo, signer);
+			expect(processID2).to.equal(2);
+
+
+			// Use the getProcesses function to get all the processes
+			const processes = await av.getProcesses();
+
+
+			// Check that the 1st process is the first process
+			expect(processes[0].topic).to.equal(topicOne);
+			expect(processes[0].censusRoot).to.equal(censusRootOne);
+			expect(processes[0].startBlock).to.equal(startBlockOne);
+			expect(processes[0].endBlock).to.equal(endBlockOne);
+			expect(processes[0].minTurnout).to.equal(minTurnoutOne);
+			expect(processes[0].minMajority).to.equal(minMajorityOne);
+
+			// Check that the 2nd process is the second process
+			expect(processes[1].topic).to.equal(topicTwo);
+			expect(processes[1].censusRoot).to.equal(censusRootTwo);
+			expect(processes[1].startBlock).to.equal(startBlockTwo);
+			expect(processes[1].endBlock).to.equal(endBlockTwo);
+			expect(processes[1].minTurnout).to.equal(minTurnoutTwo);
+			expect(processes[1].minMajority).to.equal(minMajorityTwo);
+
+			expect(processes.length).to.equal(2);
+
+		});
 
 	});
 
