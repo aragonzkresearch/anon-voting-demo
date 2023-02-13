@@ -121,7 +121,7 @@ describe("ClientLib", function () {
 			// Create the process
 			const processID = await av.newProcess(topic, censusRoot, startBlock, endBlock, minTurnout, minMajority, signer);
 
-			return {av, processID, signer, web3gw, nLevels };
+			return {av, processID, signer, web3gw, nLevels, topic, censusRoot, startBlock, endBlock, minTurnout, minMajority };
 		}
 
 		it("Should create and get a new process (without zk)", async () => {
@@ -214,6 +214,30 @@ describe("ClientLib", function () {
 			expect(processes[1].minMajority).to.equal(minMajorityTwo);
 
 			expect(processes.length).to.equal(2);
+
+		});
+
+		it("Should close a process with no votes", async () => {
+
+			// Load the fixture with the nLevels parameter
+			const { av, processID, signer, endBlock } = await loadFixture(newProcessWithoutZKFixture);
+
+			// Skip to the end of the process
+			const skipBlocks = endBlock - (await ethers.provider.getBlock("latest")).number + 1;
+			await ethers.provider.send("hardhat_mine", ['0x'+skipBlocks.toString(16)]);
+
+
+			// Close the process
+			await av.closeProcess(processID, signer);
+
+			// Get the process
+			const process = await av.getProcess(processID);
+
+			// Check that the process is closed
+			expect(process.closed).to.equal(true);
+
+			expect(process.yesVotes).to.equal(0);
+			expect(process.noVotes).to.equal(0);
 
 		});
 

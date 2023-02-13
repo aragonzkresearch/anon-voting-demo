@@ -174,6 +174,18 @@ class AnonVote {
 		// Check if the nullifier is in the nullifiers array
 		return await this.anonVoting.checkIfVoted(processID, nullifier);
 	}
+
+	// Method to close a process
+	// To get the results, the user must call the getProcess method
+	closeProcess(processID, signer) {
+		if (!this.web3gw) {
+			throw new Error("web3gw not defined. Use connect() first");
+		}
+
+		const anonVotingWithSigner = this.anonVoting.connect(signer);
+
+		return anonVotingWithSigner.closeProcess(processID);
+	}
 }
 
 module.exports = { AnonVote, buildAnonVote };
