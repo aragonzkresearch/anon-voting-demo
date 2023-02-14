@@ -102,8 +102,12 @@ contract AnonVoting {
         emit Vote(_processID, _vote);
     }
 
-    function getBlockNumber() public view returns (uint256) {
-        return block.number;
+    // Function to check if a nullifier has already been used in the process
+    // Returns true if the nullifier has been used, false otherwise
+    // This function is useful for the front-end to check if a user has already voted
+    // This is impossible to do otherwise, because the nullifiers are stored in a nested mapping
+    function checkIfVoted(uint256 _processID, uint256 _nullifier) public view returns (bool) {
+        return processes[_processID].nullifiers[_nullifier];
     }
 
 
