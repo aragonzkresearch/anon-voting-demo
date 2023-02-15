@@ -3,7 +3,7 @@ const { buildPoseidonReference, buildEddsa, buildBabyjub } = require(
 	"circomlibjs",
 );
 
-const { utils } = require('ffjavascript');
+const { utils: ffutils } = require('ffjavascript');
 
 const {ethers} = require("ethers");
 
@@ -52,11 +52,7 @@ class AnonVote {
 		const text = "ANONVOTE KEY GENERATION SECRET";
 		const signature = await signer.signMessage(text);
 
-		const privateKey = this.poseidon([signature]);
-		// Make sure that the private key has the correct format of 32 bytes
-		if (privateKey.length !== 32) {
-			throw new Error("Private key has wrong length");
-		}
+		const privateKey = ethers.utils.keccak256(signature);
 
 		// Compute the public key by hashing the private key to the BabyJubJub curve
 		const publicKey = this.eddsa.prv2pub(privateKey)
@@ -67,8 +63,8 @@ class AnonVote {
 
 
 		// Compute the compressed public key
-		const compressedPublicKey = utils.leBuff2int(this.babyjub.packPoint(publicKey))
-		this.compressedPublicKey = ethers.utils.hexZeroPad(`0x${compressedPublicKey.toString(16)}`, 32).slice(2);
+		const compressedPublicKey = ffutils.leBuff2int(this.babyjub.packPoint(publicKey))
+		this.compressedPublicKey = ethers.utils.hexZeroPad(`0x${compressedPublicKey.toString(16)}`, 32);
 
 		return {privateKey: this.privateKey, publicKey: this.publicKey, compressedPublicKey: this.compressedPublicKey };
 	}
