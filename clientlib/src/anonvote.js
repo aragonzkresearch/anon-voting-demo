@@ -7,6 +7,8 @@ const { utils: ffutils } = require('ffjavascript');
 
 const {ethers} = require("ethers");
 
+const WitnessCalculatorBuilder = require("circom_runtime").WitnessCalculatorBuilder;
+const snarkjs = require("snarkjs");
 
 async function buildAnonVote(chainID, nLevels) {
 	const poseidon = await buildPoseidonReference();
@@ -79,14 +81,14 @@ class AnonVote {
 		return this.F.toObject(nullifier).toString();
 	}
 
-	buildVote(processID, provingKey, censusRoot, proof, publicKey, vote) {
+	prepareZKInputs(processID, censusRoot, merkleproof, publicKey, vote) {
 		// for this version, weight is hardcoded to 1 for all voters
 		const weight = "1";
 
 		const nullifier = this.computeNullifier(processID);
 
 		// compute signature
-		const toSign = this.poseidon([vote]);
+		const toSign = this.poseidon([this.chainID, processID, vote]);
 		const signature = this.eddsa.signPoseidon(this.privateKey, toSign);
 
 		// set the zk-inputs
@@ -97,27 +99,48 @@ class AnonVote {
 			weight: weight,
 			nullifier: nullifier,
 			vote: vote,
-			index: proof.index, // private inputs
+			index: merkleproof.index, // private inputs
 			pubKx: this.F.toObject(publicKey[0]).toString(),
 			pubKy: this.F.toObject(publicKey[1]).toString(),
-			s: signature.S,
+			s: signature.S.toString(),
 			rx: this.F.toObject(signature.R8[0]).toString(),
 			ry: this.F.toObject(signature.R8[1]).toString(),
-			siblings: proof.siblings,
+			siblings: merkleproof.siblings,
 		};
+		return inputs;
+	}
 
-		const publicInputs = {
-			chainID: this.chainID,
-			processID: processID,
-			censusRoot: censusRoot,
-			weight: weight,
-			nullifier: nullifier,
-			vote: vote
-		};
+	async genZKProof(zkey, witnessCalcWasm, processID, censusRoot, merkleproof, publicKey, vote) {
+		const inputs = this.prepareZKInputs(processID, censusRoot, merkleproof, publicKey, vote);
 
-		// TODO generate zk-proof
-		// TODO return public inputs + zk-proof
-		return {publicInputs: publicInputs};
+		let proof, publicInputs;
+		try {
+			let res = await snarkjs.groth16.fullProve(
+				inputs,
+				witnessCalcWasm,
+				zkey,
+			);
+			proof = res.proof;
+			publicInputs = res.publicSignals;
+		} catch(e) {
+			throw new Error("fullProve err: " + e);
+		}
+
+		// return public inputs + zk-proof ready to be sent to the smart contract
+		return [
+			publicInputs[0],
+			publicInputs[1],
+			publicInputs[2],
+			publicInputs[3],
+			publicInputs[4],
+			publicInputs[5],
+			[proof.pi_a[0], proof.pi_a[1]],
+			[
+				[proof.pi_b[0][1], proof.pi_b[0][0]],
+				[proof.pi_b[1][1], proof.pi_b[1][0]]
+			],
+			[proof.pi_c[0], proof.pi_c[1]]
+		];
 	}
 
 	// Method to get the information of a process

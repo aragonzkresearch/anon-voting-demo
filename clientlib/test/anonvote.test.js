@@ -5,11 +5,27 @@ const {
 const { assert, expect } = require("chai");
 const { ethers } = require("hardhat");
 
+const path = require("path");
+const fs = require("fs");
+const { promises: pfs } = require("fs");
+const wasm_tester = require("circom_tester").wasm;
+const snarkjs = require("snarkjs");
+
 const {buildAnonVote} = require("../src/anonvote.js");
 const {buildCensus} = require("../src/census.js");
 const fromHexString = (hexString) =>
 	new Uint8Array(hexString.match(/.{1,2}/g).map((byte) => parseInt(byte, 16)));
 
+async function loadCircuit(path) {
+	let zkey, witnessCalcWasm;
+	try {
+		zkey = await pfs.readFile( __dirname + path+".zkey");
+		witnessCalcWasm = await pfs.readFile( __dirname + path+".wasm");
+	} catch (e) {
+		throw new Error("loadCircuit:err: " + e);
+	}
+	return {zkey: zkey, witnessCalcWasm: witnessCalcWasm};
+}
 
 describe("ClientLib", function () {
 	describe("Full flow without SmartContracts interaction", function () {
@@ -18,7 +34,25 @@ describe("ClientLib", function () {
 		const chainID=42;
 		const nLevels=16;
 
-		it("Build vote (no-zk)", async () => {
+		it("Should prepare valid zk-inputs matching the circuit", async () => {
+			const circuitPath = path.join(
+				__dirname,
+				"circuits",
+				"oav-test.circom",
+			);
+			const circuitCode = `
+			    pragma circom 2.0.0;
+			    include "../../node_modules/ovote/circuits/src/oav.circom";
+			    component main {public [chainID, processID, censusRoot, weight, nullifier, vote]}= oav(${
+			      nLevels
+			    });
+			`;
+			fs.writeFileSync(circuitPath, circuitCode, "utf8");
+
+			cir = await wasm_tester(circuitPath);
+
+			await cir.loadConstraints();
+
 			const processID = 3;
 			const av = await buildAnonVote(chainID, nLevels);
 			const census = await buildCensus(nLevels);
@@ -43,12 +77,69 @@ describe("ClientLib", function () {
 
 			await census.addKeys(publicKeys);
 
-			const proof = await census.generateProof(0);
+			const merkleproof = await census.generateProof(0);
 
 			const vote = "1";
-			const votePackage = av.buildVote(processID, null, // provingKey set to null as it is not used in this test
-				census.root(), proof, publicKey, vote);
-			assert(votePackage.publicInputs != undefined);
+
+			const inputs = await av.prepareZKInputs(processID,
+				census.root(), merkleproof, publicKey, vote);
+
+			const witness = await cir.calculateWitness(inputs, true);
+			await cir.checkConstraints(witness);
+		});
+
+		it("Should generate a valid zk-proof", async () => {
+			const processID = 3;
+			const av = await buildAnonVote(chainID, nLevels);
+			const census = await buildCensus(nLevels);
+
+			// simulate key generation
+			const privateKey = fromHexString(
+				"0001020304050607080900010203040506070809000102030405060708090000",
+			);
+			const publicKey = av.eddsa.prv2pub(privateKey);
+			av.privateKey = privateKey;
+			av.publicKey = publicKey;
+
+			// gen other pubKeys
+			let publicKeys = [av.publicKey];
+			for (let i=1; i<10; i++) {
+				const privateKey = fromHexString(
+					"000102030405060708090001020304050607080900010203040506070809000"+i,
+				);
+				const publicKey = av.eddsa.prv2pub(privateKey);
+				publicKeys.push(publicKey);
+			}
+
+			await census.addKeys(publicKeys);
+
+			const merkleproof = await census.generateProof(0);
+
+			const vote = "1";
+			const circuit = await loadCircuit("/../../other/circuit16");
+			assert(circuit.zkey != undefined);
+			assert(circuit.witnessCalcWasm != undefined);
+
+			const txData = await av.genZKProof(circuit.zkey,
+				circuit.witnessCalcWasm, processID,
+				census.root(), merkleproof, publicKey, vote);
+
+			// reconstruct publicInputs & proof jsons from txData (only for the test)
+			let publicInputs = txData.slice(0,6);
+			let p = txData.slice(6,9);
+			let proof = {
+				pi_a: p[0],
+				pi_b: [
+					[p[1][0][1], p[1][0][0]],
+					[p[1][1][1], p[1][1][0]]
+				],
+				pi_c: p[2]
+			};
+
+			// verify the zk-proof
+			const vKey = await snarkjs.zKey.exportVerificationKey(circuit.zkey);
+			const isValid = await snarkjs.groth16.verify(vKey, publicInputs, proof);
+			if (!isValid) throw new Error("The generated proof is not valid");
 		});
 
 		it("Generate BabyJubJub key pair check", async () => {
@@ -71,7 +162,6 @@ describe("ClientLib", function () {
 
 
 	describe("Smart Contract interaction tests", function () {
-
 		// Define a fixture that defines hardhat gateway and then deploy the Smart Contract
 		// to the local hardhat network. It also builds the AnonVote instance and connects
 		// it to the Smart Contract.
@@ -97,7 +187,6 @@ describe("ClientLib", function () {
 		}
 
 		it("Should connect to a Smart Contract", async () => {
-
 			// Load the fixture
 			// Inside the fixture, the AnonVoting Smart Contract is deployed and the
 			// AnonVote instance is connected to it.
@@ -105,7 +194,6 @@ describe("ClientLib", function () {
 		});
 
 		it("Should return null if the process does not exist", async () => {
-
 			// Load the fixture
 			const { av } = await loadFixture(contractFixture);
 
@@ -142,7 +230,6 @@ describe("ClientLib", function () {
 		}
 
 		it("Should create and get a new process (without zk)", async () => {
-
 			// Load the fixture with the nLevels parameter
 			const { av } = await loadFixture(contractFixture);
 
@@ -177,7 +264,6 @@ describe("ClientLib", function () {
 		});
 
 		it("Should create two processes and get them all", async () => {
-
 			// Load the fixture with the nLevels parameter
 			const { av } = await loadFixture(contractFixture);
 
@@ -231,11 +317,9 @@ describe("ClientLib", function () {
 			expect(processes[1].minMajority).to.equal(minMajorityTwo);
 
 			expect(processes.length).to.equal(2);
-
 		});
 
 		it("Should close a process with no votes", async () => {
-
 			// Load the fixture with the nLevels parameter
 			const { av, processID, signer, endBlock } = await loadFixture(newProcessWithoutZKFixture);
 
@@ -255,10 +339,6 @@ describe("ClientLib", function () {
 
 			expect(process.yesVotes).to.equal(0);
 			expect(process.noVotes).to.equal(0);
-
 		});
-
 	});
-
-
 });

@@ -12,7 +12,7 @@ class Census {
 	constructor(tree, poseidon, nLevels) {
 		this.poseidon = poseidon;
 		this.F = this.poseidon.F;
-		this.nLevels = nLevels
+		this.nLevels = nLevels;
 		this.tree = tree;
 	}
 
@@ -32,13 +32,13 @@ class Census {
 		for (let i = 0; i < siblings.length; i++) {
 			siblings[i] = this.F.toObject(siblings[i]).toString();
 		}
-		while (siblings.length < this.nLevels) siblings.push(0);
+		while (siblings.length <= this.nLevels) siblings.push(0);
 
 		return {
 			censusRoot: this.F.toObject(this.tree.root).toString(),
 			index: index,
 			value: this.F.toObject(res.foundValue).toString(),
-			proof: siblings
+			siblings: siblings
 		};
 	}
 
