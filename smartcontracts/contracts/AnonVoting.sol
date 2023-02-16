@@ -2,7 +2,10 @@
 
 pragma solidity ^0.8.9;
 
+import './zkVerifier16lvls.sol';
+
 contract AnonVoting {
+    Verifier    verifier;
 
     // We represent each voting process as a struct
     // To create a new process, we call the `newProcess` function
@@ -47,8 +50,8 @@ contract AnonVoting {
 
     // Constructor
     // TODO: add a parameter to set the Verifier contract address
-    constructor() {
-
+    constructor(address _verifierContractAddr) {
+        verifier = Verifier(_verifierContractAddr);
     }
 
     // Function to create a new process
@@ -77,7 +80,11 @@ contract AnonVoting {
     // Function to vote in a process
     // Requires the process to be active, and the nullifier to not have been used before
     // Verifies the proof and updates the process accordingly
-    function vote(uint256 _processID, bool _vote, uint256 _nullifier, uint256[] memory _proof) processExists(_processID) external {
+    function vote(uint256 _processID,
+                  bool _vote,
+                  uint256 _nullifier, 
+                  uint[2] memory _a, uint[2][2] memory _b, uint[2] memory _c
+                 ) processExists(_processID) external {
         Process storage process = processes[_processID];
         // We do not require to check if the process exists, because if it doesn't exist, the process end block number will be 0
         // Require that the process is active
@@ -86,16 +93,35 @@ contract AnonVoting {
         // Require that the nullifier has not been used before
         require(!process.nullifiers[_nullifier], "Nullifier has been used before");
 
-        // Verify the proof
-        // TODO - call the verifyProof function
+        // for this version, weight is hardcoded to 1 for all voters
+        uint256 weight = 1;
+
+        uint256 voteU256 = 0;
+        if (_vote) {
+            voteU256 = 1;
+        }
+
+        // build inputs array (using Process parameters from processes mapping)
+        uint256[6] memory inputs = [
+            uint256(31337),
+            _processID,
+            process.censusRoot,
+            weight,
+            _nullifier,
+            voteU256
+        ];
+
+        // call zk snark verification
+        require(verifier.verifyProof(_a, _b, _c, inputs), "zkProof vote could not be verified");
+
 
         // Update the process
         process.nullifiers[_nullifier] = true;
         // We consider the vote to be a "yes" if _vote is true, and a "no" if _vote is false
         if (_vote) {
-            process.yesVotes++;
+            process.yesVotes += weight;
         } else {
-            process.noVotes++;
+            process.noVotes += weight;
         }
 
         // Emit the Vote event
