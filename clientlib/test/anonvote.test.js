@@ -18,7 +18,7 @@ describe("ClientLib", function () {
 		const chainID=42;
 		const nLevels=16;
 
-		it("build vote (no-zk)", async () => {
+		it("Build vote (no-zk)", async () => {
 			const processID = 3;
 			const av = await buildAnonVote(chainID, nLevels);
 			const census = await buildCensus(nLevels);
@@ -49,6 +49,23 @@ describe("ClientLib", function () {
 			const votePackage = av.buildVote(processID, null, // provingKey set to null as it is not used in this test
 				census.root(), proof, publicKey, vote);
 			assert(votePackage.publicInputs != undefined);
+		});
+
+		it("Generate BabyJubJub key pair check", async () => {
+			const av = await buildAnonVote(chainID, nLevels);
+
+			// Get a signer from hardhat
+			const signer = (await ethers.getSigners())[0];
+
+			const {privateKey, publicKey, compressedPublicKey } = await av.generateKey(signer);
+
+			// Check that the private key is 32 bytes long hex string (0x prefix + 64 hex chars)
+			expect(privateKey).to.match(/^0x[0-9a-fA-F]{64}$/);
+			// Check that the public key is not null
+			expect(publicKey).to.not.be.null;
+			// Check that the compressed public key is a 32 bytes long hex string (0x prefix + 64 hex chars)
+			expect(compressedPublicKey).to.match(/^0x[0-9a-fA-F]{64}$/);
+
 		});
 	});
 
@@ -242,5 +259,6 @@ describe("ClientLib", function () {
 		});
 
 	});
+
 
 });

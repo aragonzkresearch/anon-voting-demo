@@ -1,11 +1,18 @@
-const { buildPoseidonReference, buildEddsa } = require(
+
+const { buildPoseidonReference, buildEddsa, buildBabyjub } = require(
 	"circomlibjs",
 );
+
+const { utils: ffutils } = require('ffjavascript');
+
+const {ethers} = require("ethers");
+
 
 async function buildAnonVote(chainID, nLevels) {
 	const poseidon = await buildPoseidonReference();
 	const eddsa = await buildEddsa();
-	return new AnonVote(poseidon, eddsa, chainID, nLevels);
+	const babyjub = await buildBabyjub();
+	return new AnonVote(poseidon, eddsa, babyjub, chainID, nLevels);
 }
 
 // AnonVote contains all the logic to build the data structures to vote, build
@@ -13,11 +20,12 @@ async function buildAnonVote(chainID, nLevels) {
 // To interact with the Smart Contracts, it needs a web3 gateway and a contract
 // address. For that, use the connect() method.
 class AnonVote {
-	constructor(poseidon, eddsa, chainID, nLevels) {
+	constructor(poseidon, eddsa, babyjub, chainID, nLevels) {
 		this.poseidon = poseidon;
 		this.F = this.poseidon.F;
 		this.eddsa = eddsa;
 		this.chainID = chainID;
+		this.babyjub = babyjub;
 		this.nLevels = nLevels
 	}
 
@@ -36,8 +44,29 @@ class AnonVote {
 		this.anonVoting = new ethers.Contract(anonVotingAddress, abi, this.web3gw);
 	}
 
-	generateKey() {
-		// TODO derive from Metamask signature
+	// Generate a BabyJubJub keypair
+	// To generate the private key, we use the users signature over "AnonVote Key Generation Secret"
+	// Then we hash the signature to get a 32-byte private key
+	// The public key is computed from the private key using the BabyJubJub curve
+	async generateKey(signer) {
+		const text = "ANONVOTE KEY GENERATION SECRET";
+		const signature = await signer.signMessage(text);
+
+		const privateKey = ethers.utils.keccak256(signature);
+
+		// Compute the public key by hashing the private key to the BabyJubJub curve
+		const publicKey = this.eddsa.prv2pub(privateKey)
+
+		// Store the private and public key
+		this.privateKey = privateKey
+		this.publicKey = [publicKey[0].toString(), publicKey[1].toString()]
+
+
+		// Compute the compressed public key
+		const compressedPublicKey = ffutils.leBuff2int(this.babyjub.packPoint(publicKey))
+		this.compressedPublicKey = ethers.utils.hexZeroPad(`0x${compressedPublicKey.toString(16)}`, 32);
+
+		return {privateKey: this.privateKey, publicKey: this.publicKey, compressedPublicKey: this.compressedPublicKey };
 	}
 
 	computeNullifier(processID) {
