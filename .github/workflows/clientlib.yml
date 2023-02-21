@@ -13,6 +13,12 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node-version }}
+    - name: Download circom
+      run: |
+        mkdir -p $HOME/bin
+        curl -sSfL https://github.com/iden3/circom/releases/download/v2.1.2/circom-linux-amd64 -o $HOME/bin/circom
+        chmod +x $HOME/bin/circom
+        echo "$HOME/bin" >> $GITHUB_PATH
     - name: run tests
       run: |
         cd clientlib

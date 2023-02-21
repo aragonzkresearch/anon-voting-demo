@@ -13,13 +13,30 @@ describe("AnonVoting", function () {
   // We define a fixture to reuse the same setup in every test.
   // We use loadFixture to run this setup once, snapshot that state,
   // and reset Hardhat Network to that snapshot in every test.
+  async function deployAnonVotingWithoutZKFixture() {
+
+    // Contracts are deployed using the first signer/account by default
+    const [owner, otherAccount] = await ethers.getSigners();
+
+    const Verifier = await ethers.getContractFactory("VerifierMock");
+    const verifier = await Verifier.deploy();
+
+    const AnonVoting = await ethers.getContractFactory("AnonVoting");
+    const anonVoting = await AnonVoting.deploy(verifier.address);
+
+    return { anonVoting, owner, otherAccount };
+  }
+
   async function deployAnonVotingFixture() {
 
     // Contracts are deployed using the first signer/account by default
     const [owner, otherAccount] = await ethers.getSigners();
 
+    const Verifier = await ethers.getContractFactory("Verifier");
+    const verifier = await Verifier.deploy();
+
     const AnonVoting = await ethers.getContractFactory("AnonVoting");
-    const anonVoting = await AnonVoting.deploy();
+    const anonVoting = await AnonVoting.deploy(verifier.address);
 
     return { anonVoting, owner, otherAccount };
   }
@@ -27,7 +44,7 @@ describe("AnonVoting", function () {
   describe("Deployment", function () {
 
     it("Should set the lastProcessID to 0", async function () {
-      const { anonVoting } = await loadFixture(deployAnonVotingFixture);
+      const { anonVoting } = await loadFixture(deployAnonVotingWithoutZKFixture);
 
       expect(await anonVoting.lastProcessID()).to.equal(0);
     });
@@ -35,9 +52,9 @@ describe("AnonVoting", function () {
 
   describe("createProcess", function () {
     it("Should create a new process and set its details correctly", async function () {
-        const {anonVoting, owner } = await loadFixture(deployAnonVotingFixture);
+        const {anonVoting, owner } = await loadFixture(deployAnonVotingWithoutZKFixture);
 
-        const processID = await anonVoting.lastProcessID() + 1;
+        const processID = Number(await anonVoting.lastProcessID()) + 1;
         const processTopic = "Test process";
         const startBlockNum = (await ethers.provider.getBlock("latest")).timestamp + 1000;
         const endBlockNum = startBlockNum + 1000;
@@ -67,7 +84,7 @@ describe("AnonVoting", function () {
     });
 
     it("Should not create a process with an incorrect startBlockNum", async function () {
-      const {anonVoting} = await loadFixture(deployAnonVotingFixture);
+      const {anonVoting} = await loadFixture(deployAnonVotingWithoutZKFixture);
 
       const processID = await anonVoting.lastProcessID();
       const processTopic = "Test process";
@@ -85,7 +102,7 @@ describe("AnonVoting", function () {
     });
 
     it("Should not create a process with endBlockNum less than or equal to startBlockNum", async function () {
-      const {anonVoting} = await loadFixture(deployAnonVotingFixture);
+      const {anonVoting} = await loadFixture(deployAnonVotingWithoutZKFixture);
 
       const processID = await anonVoting.lastProcessID();
       const processTopic = "Test process";
@@ -104,9 +121,9 @@ describe("AnonVoting", function () {
 
   async function startAnonVotingProcessFixture() {
 
-    const { anonVoting, owner } = await loadFixture(deployAnonVotingFixture);
+    const { anonVoting, owner } = await loadFixture(deployAnonVotingWithoutZKFixture);
 
-    const processID = await anonVoting.lastProcessID() + 1;
+    const processID = Number(await anonVoting.lastProcessID()) + 1;
     const processTopic = "Test process";
     const startBlockNum = (await ethers.provider.getBlock("latest")).number + 1000;
     const endBlockNum = startBlockNum + 1000;
@@ -123,10 +140,9 @@ describe("AnonVoting", function () {
       const { anonVoting, processID } = await loadFixture(startAnonVotingProcessFixture);
 
       const nullifier = "0x0000000000000000000000000000000000000000000000000000000000000000"; // We don't use nullifiers in this test
-      const proof = []; // We don't use proofs in this test
 
       // This should throw an error because the process does not exist
-      await expect(anonVoting.vote(processID + 1, true, nullifier, proof))
+      await expect(anonVoting.vote(processID + 1, true, nullifier, ["1","1"], [["1","1"],["1","1"]], ["1","1"]))
           .to.be.rejectedWith(/revert/);
     });
 
@@ -134,10 +150,10 @@ describe("AnonVoting", function () {
       const { anonVoting, processID } = await loadFixture(startAnonVotingProcessFixture);
 
       const nullifier = "0x0000000000000000000000000000000000000000000000000000000000000000"; // We don't use nullifiers in this test
-      const proof = []; // We don't use proofs in this test
+      const [a, b, c] = [["1","1"], [["1","1"],["1","1"]], ["1","1"]]; // We don't use proofs in this test
 
       // This should throw an error because the process has not started yet
-      await expect(anonVoting.vote(processID, true, nullifier, proof))
+      await expect(anonVoting.vote(processID, true, nullifier, a, b, c))
           .to.be.rejectedWith("Process has not started yet");
     });
 
@@ -149,10 +165,10 @@ describe("AnonVoting", function () {
       await ethers.provider.send("hardhat_mine", ['0x'+skipBlocks.toString(16)]); // Skip 1999 blocks
 
       const nullifier = "0x0000000000000000000000000000000000000000000000000000000000000000"; // We don't use nullifiers in this test
-      const proof = []; // We don't use proofs in this test
+      const [a, b, c] = [["1","1"], [["1","1"],["1","1"]], ["1","1"]]; // We don't use proofs in this test
 
       // This should throw an error because the process has ended
-      await expect(anonVoting.vote(processID, true, nullifier, proof))
+      await expect(anonVoting.vote(processID, true, nullifier, a, b, c))
             .to.be.rejectedWith("Process has ended");
     });
 
@@ -164,10 +180,10 @@ describe("AnonVoting", function () {
         await ethers.provider.send("hardhat_mine", ['0x'+skipBlocks.toString(16)]);
 
         const nullifier = "0x0000000000000000000000000000000000000000000000000000000000000000"; // We don't use nullifiers in this test
-        const proof = []; // We don't use proofs in this test
+        const [a, b, c] = [["1","1"], [["1","1"],["1","1"]], ["1","1"]]; // We don't use proofs in this test
 
         // This should not throw an error because the process has started and not ended
-        await expect(anonVoting.vote(processID, true, nullifier, proof))
+        await expect(anonVoting.vote(processID, true, nullifier, a, b, c))
                 .to.not.be.rejectedWith(/revert/);
 
         // Check that the vote was registered
@@ -184,18 +200,57 @@ describe("AnonVoting", function () {
         await ethers.provider.send("hardhat_mine", ['0x'+skipBlocks.toString(16)]);
 
         const nullifier = "0x0000000000000000000000000000000000000000000000000000000000000000"; // A fixed nullifier
-        const proof = []; // We don't use proofs in this test
+        const [a, b, c] = [["1","1"], [["1","1"],["1","1"]], ["1","1"]]; // We don't use proofs in this test
 
         // This should not throw an error because the process has started and not ended
-        await expect(anonVoting.vote(processID, true, nullifier, proof))
+        await expect(anonVoting.vote(processID, true, nullifier, a, b, c))
                 .to.not.be.rejectedWith(/revert/);
 
         // Try to vote again with the same nullifier
-        await expect(anonVoting.vote(processID, true, nullifier, proof))
+        await expect(anonVoting.vote(processID, true, nullifier, a, b, c))
                 .to.be.rejectedWith('Nullifier has been used before');
     });
 
-    // TODO: Add tests for the proof verification
+      it("Should verify a generated zkproof", async function () {
+          // proofAndPI has been generated with the anonvote lib
+          const proofAndPI = JSON.parse(`{"publicInputs":{"chainID":"31337","processID":"3","censusRoot":"21823409822845156879367346550439134574128510197817385772757622927609968453408","weight":"1","nullifier":"2118624858783697088557452517993261412014268393748737523839644268649750802296","vote":"1"},"proof":[["2924213430630915703866902299146918413679754219712159207534869393190435105431","17956672624584971245919241488821602897469390883367271267371572616839635574325"],[["14130673802698948280268134371581271546847304042923616990793212171899776891648","10467087115291494182431962173838930747838205210719444081018699110481644541335"],["21270106270254323983869461454419059202030334198944272077964212758661515552409","4592822165267955978060829529502076420540460341765553496690574674560396235621"]],["19638091319210426889512154179350345291593650263103484348752344095219528395396","16036468063877376957677616996053924313020981138569866079649318262289059741910"]]}`);
+
+          const { anonVoting, owner } = await loadFixture(deployAnonVotingFixture); // With ZKVerify activated
+
+          const processTopic = "Test process";
+          const startBlockNum = (await ethers.provider.getBlock("latest")).number + 1000;
+          const endBlockNum = startBlockNum + 1000;
+          const censusRoot = proofAndPI.publicInputs.censusRoot;
+
+          // create some new processes to be in the processID=3 to match the zkproof
+          await anonVoting.newProcess(processTopic, censusRoot, startBlockNum, endBlockNum, DEFAULT_MIN_TURNOUT, DEFAULT_MIN_MAJORITY);
+          await anonVoting.newProcess(processTopic, censusRoot, startBlockNum, endBlockNum, DEFAULT_MIN_TURNOUT, DEFAULT_MIN_MAJORITY);
+          await anonVoting.newProcess(processTopic, censusRoot, startBlockNum, endBlockNum, DEFAULT_MIN_TURNOUT, DEFAULT_MIN_MAJORITY);
+
+          expect(await anonVoting.lastProcessID()).to.equal(proofAndPI.publicInputs.processID);
+          const processID = Number(await anonVoting.lastProcessID());
+
+          // Skip to the very start of the process (1000 blocks)
+          const skipBlocks = startBlockNum - (await ethers.provider.getBlock("latest")).number + 1;
+          await ethers.provider.send("hardhat_mine", ['0x'+skipBlocks.toString(16)]);
+
+          let vote = false;
+          if (proofAndPI.publicInputs.vote=="1") {
+              vote = true;
+          }
+
+          // This should not throw an error because the process has started and
+          // not ended and the proof is valid
+          await expect(anonVoting.vote(proofAndPI.publicInputs.processID, vote,
+              proofAndPI.publicInputs.nullifier, proofAndPI.proof[0],
+              proofAndPI.proof[1], proofAndPI.proof[2]))
+              .to.not.be.rejectedWith(/revert/);
+
+          // Check that the vote was registered
+          const processDetails = await anonVoting.processes(processID);
+          expect(processDetails.yesVotes).to.equal(1);
+          expect(processDetails.noVotes).to.equal(0);
+      });
   });
 
   describe("endProcess", function () {
@@ -227,8 +282,6 @@ describe("AnonVoting", function () {
         // Skip to the end of the process (2000 blocks)
         const skipBlocks = endBlockNum - (await ethers.provider.getBlock("latest")).number + 1;
         await ethers.provider.send("hardhat_mine", ['0x'+skipBlocks.toString(16)]); // Skip 1999 blocks
-
-      console.log("endBlockNum", endBlockNum, "currentBlock", (await ethers.provider.getBlock("latest")).number);
 
         // This should not throw an error because the process has ended
         await expect(anonVoting.closeProcess(processID))
@@ -267,8 +320,8 @@ describe("AnonVoting", function () {
 
         // Vote yes
         const nullifier = "0x0000000000000000000000000000000000000000000000000000000000000000"; // We don't use nullifiers in this test
-        const proof = []; // We don't use proofs in this test
-        await anonVoting.vote(processID, true, nullifier, proof);
+        const [a, b, c] = [["1","1"], [["1","1"],["1","1"]], ["1","1"]]; // We don't use proofs in this test
+        await anonVoting.vote(processID, true, nullifier, a, b, c);
 
         // Skip to the end of the process (2000 blocks)
         skipBlocks = endBlockNum - (await ethers.provider.getBlock("latest")).number + 1;

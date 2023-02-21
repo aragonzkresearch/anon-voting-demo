@@ -7,6 +7,8 @@ const { utils: ffutils } = require('ffjavascript');
 
 const {ethers} = require("ethers");
 
+const WitnessCalculatorBuilder = require("circom_runtime").WitnessCalculatorBuilder;
+const snarkjs = require("snarkjs");
 
 async function buildAnonVote(chainID, nLevels) {
 	const poseidon = await buildPoseidonReference();
@@ -39,7 +41,7 @@ class AnonVote {
 		// (clientlib/artifacts/contracts/AnonVoting.sol/AnonVoting.json)
 		// To generate the new artifact, you need to compile the contract
 		// Run `npx hardhat compile` in the root folder of the project
-		const abi = [{"inputs":[],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint256","name":"processID","type":"uint256"},{"indexed":false,"internalType":"address","name":"creator","type":"address"},{"indexed":false,"internalType":"string","name":"topic","type":"string"},{"indexed":false,"internalType":"uint256","name":"startBlockNum","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"endBlockNum","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"censusRoot","type":"uint256"},{"indexed":false,"internalType":"uint8","name":"minTurnout","type":"uint8"},{"indexed":false,"internalType":"uint8","name":"minMajority","type":"uint8"}],"name":"NewProcess","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint256","name":"processID","type":"uint256"},{"indexed":false,"internalType":"bool","name":"passed","type":"bool"}],"name":"ProcessClosed","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint256","name":"processID","type":"uint256"},{"indexed":false,"internalType":"bool","name":"vote","type":"bool"}],"name":"Vote","type":"event"},{"inputs":[{"internalType":"uint256","name":"_processID","type":"uint256"},{"internalType":"uint256","name":"_nullifier","type":"uint256"}],"name":"checkIfVoted","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_processID","type":"uint256"}],"name":"closeProcess","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_processID","type":"uint256"}],"name":"isProcessPassed","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"lastProcessID","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"string","name":"_topic","type":"string"},{"internalType":"uint256","name":"_censusRoot","type":"uint256"},{"internalType":"uint256","name":"_startBlockNum","type":"uint256"},{"internalType":"uint256","name":"_endBlockNum","type":"uint256"},{"internalType":"uint8","name":"_minTurnout","type":"uint8"},{"internalType":"uint8","name":"_minMajority","type":"uint8"}],"name":"newProcess","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"","type":"uint256"}],"name":"processes","outputs":[{"internalType":"address","name":"creator","type":"address"},{"internalType":"string","name":"topic","type":"string"},{"internalType":"uint256","name":"startBlockNum","type":"uint256"},{"internalType":"uint256","name":"endBlockNum","type":"uint256"},{"internalType":"uint256","name":"censusRoot","type":"uint256"},{"internalType":"uint8","name":"minTurnout","type":"uint8"},{"internalType":"uint8","name":"minMajority","type":"uint8"},{"internalType":"uint256","name":"yesVotes","type":"uint256"},{"internalType":"uint256","name":"noVotes","type":"uint256"},{"internalType":"bool","name":"closed","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_processID","type":"uint256"},{"internalType":"bool","name":"_vote","type":"bool"},{"internalType":"uint256","name":"_nullifier","type":"uint256"},{"internalType":"uint256[]","name":"_proof","type":"uint256[]"}],"name":"vote","outputs":[],"stateMutability":"nonpayable","type":"function"}];
+		const abi = [{"inputs":[{"internalType":"address","name":"_verifierContractAddr","type":"address"}],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint256","name":"processID","type":"uint256"},{"indexed":false,"internalType":"address","name":"creator","type":"address"},{"indexed":false,"internalType":"string","name":"topic","type":"string"},{"indexed":false,"internalType":"uint256","name":"startBlockNum","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"endBlockNum","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"censusRoot","type":"uint256"},{"indexed":false,"internalType":"uint8","name":"minTurnout","type":"uint8"},{"indexed":false,"internalType":"uint8","name":"minMajority","type":"uint8"}],"name":"NewProcess","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint256","name":"processID","type":"uint256"},{"indexed":false,"internalType":"bool","name":"passed","type":"bool"}],"name":"ProcessClosed","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint256","name":"processID","type":"uint256"},{"indexed":false,"internalType":"bool","name":"vote","type":"bool"}],"name":"Vote","type":"event"},{"inputs":[{"internalType":"uint256","name":"_processID","type":"uint256"},{"internalType":"uint256","name":"_nullifier","type":"uint256"}],"name":"checkIfVoted","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_processID","type":"uint256"}],"name":"closeProcess","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_processID","type":"uint256"}],"name":"isProcessPassed","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"lastProcessID","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"string","name":"_topic","type":"string"},{"internalType":"uint256","name":"_censusRoot","type":"uint256"},{"internalType":"uint256","name":"_startBlockNum","type":"uint256"},{"internalType":"uint256","name":"_endBlockNum","type":"uint256"},{"internalType":"uint8","name":"_minTurnout","type":"uint8"},{"internalType":"uint8","name":"_minMajority","type":"uint8"}],"name":"newProcess","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"","type":"uint256"}],"name":"processes","outputs":[{"internalType":"address","name":"creator","type":"address"},{"internalType":"string","name":"topic","type":"string"},{"internalType":"uint256","name":"startBlockNum","type":"uint256"},{"internalType":"uint256","name":"endBlockNum","type":"uint256"},{"internalType":"uint256","name":"censusRoot","type":"uint256"},{"internalType":"uint8","name":"minTurnout","type":"uint8"},{"internalType":"uint8","name":"minMajority","type":"uint8"},{"internalType":"uint256","name":"yesVotes","type":"uint256"},{"internalType":"uint256","name":"noVotes","type":"uint256"},{"internalType":"bool","name":"closed","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_processID","type":"uint256"},{"internalType":"bool","name":"_vote","type":"bool"},{"internalType":"uint256","name":"_nullifier","type":"uint256"},{"internalType":"uint256[2]","name":"_a","type":"uint256[2]"},{"internalType":"uint256[2][2]","name":"_b","type":"uint256[2][2]"},{"internalType":"uint256[2]","name":"_c","type":"uint256[2]"}],"name":"vote","outputs":[],"stateMutability":"nonpayable","type":"function"}];
 		// Load the contract
 		this.anonVoting = new ethers.Contract(anonVotingAddress, abi, this.web3gw);
 	}
@@ -79,14 +81,14 @@ class AnonVote {
 		return this.F.toObject(nullifier).toString();
 	}
 
-	buildVote(processID, provingKey, censusRoot, proof, publicKey, vote) {
+	prepareZKInputs(processID, censusRoot, merkleproof, vote) {
 		// for this version, weight is hardcoded to 1 for all voters
 		const weight = "1";
 
 		const nullifier = this.computeNullifier(processID);
 
 		// compute signature
-		const toSign = this.poseidon([vote]);
+		const toSign = this.poseidon([this.chainID, processID, vote]);
 		const signature = this.eddsa.signPoseidon(this.privateKey, toSign);
 
 		// set the zk-inputs
@@ -97,27 +99,52 @@ class AnonVote {
 			weight: weight,
 			nullifier: nullifier,
 			vote: vote,
-			index: proof.index, // private inputs
-			pubKx: this.F.toObject(publicKey[0]).toString(),
-			pubKy: this.F.toObject(publicKey[1]).toString(),
-			s: signature.S,
+			index: merkleproof.index, // private inputs
+			pubKx: this.F.toObject(this.publicKey[0]).toString(),
+			pubKy: this.F.toObject(this.publicKey[1]).toString(),
+			s: signature.S.toString(),
 			rx: this.F.toObject(signature.R8[0]).toString(),
 			ry: this.F.toObject(signature.R8[1]).toString(),
-			siblings: proof.siblings,
+			siblings: merkleproof.siblings,
 		};
+		return inputs;
+	}
 
-		const publicInputs = {
-			chainID: this.chainID,
-			processID: processID,
-			censusRoot: censusRoot,
-			weight: weight,
-			nullifier: nullifier,
-			vote: vote
+	async genZKProof(zkey, witnessCalcWasm, processID, censusRoot, merkleproof, vote) {
+		const inputs = this.prepareZKInputs(processID, censusRoot, merkleproof, vote);
+
+		let proof, publicInputs;
+		try {
+			let res = await snarkjs.groth16.fullProve(
+				inputs,
+				witnessCalcWasm,
+				zkey,
+			);
+			proof = res.proof;
+			publicInputs = res.publicSignals;
+		} catch(e) {
+			throw new Error("fullProve err: " + e);
+		}
+
+		// return public inputs + zk-proof
+		return {
+			publicInputs: {
+				chainID: publicInputs[0],
+				processID: publicInputs[1],
+				censusRoot: publicInputs[2],
+				weight: publicInputs[3],
+				nullifier: publicInputs[4],
+				vote: publicInputs[5],
+			},
+			proof: [ // proof in the SmartContract expected format
+				[proof.pi_a[0], proof.pi_a[1]],
+				[
+					[proof.pi_b[0][1], proof.pi_b[0][0]],
+					[proof.pi_b[1][1], proof.pi_b[1][0]]
+				],
+				[proof.pi_c[0], proof.pi_c[1]]
+			]
 		};
-
-		// TODO generate zk-proof
-		// TODO return public inputs + zk-proof
-		return {publicInputs: publicInputs};
 	}
 
 	// Method to get the information of a process
@@ -186,9 +213,29 @@ class AnonVote {
 		return  await this.anonVoting.lastProcessID();
 	}
 
-	getProof() {}
+	getMerkleProof() {}
 	getProvingKey() {}
-	castVote() {}
+
+	async castVote(signer, zkey, witnessCalcWasm, processID, censusRoot, merkleproof, voteBool) {
+		if (!this.web3gw) {
+			throw new Error("web3gw not defined. Use connect() first");
+		}
+		const anonVotingWithSigner = this.anonVoting.connect(signer);
+
+		let vote = 0;
+		if (voteBool){
+			vote = 1;
+		}
+
+		// prepare the inputs and generate the zkproof
+		let proofAndPI = await this.genZKProof(zkey, witnessCalcWasm,
+			processID, censusRoot, merkleproof, vote);
+
+		// call contract vote method sending the proof
+		await anonVotingWithSigner.vote(processID, voteBool,
+			proofAndPI.publicInputs.nullifier, proofAndPI.proof[0],
+			proofAndPI.proof[1], proofAndPI.proof[2]);
+	}
 
 	// Method to check if a voter has already voted in a process
 	// Returns true if the voter has already voted, false otherwise
