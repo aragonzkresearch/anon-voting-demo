@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.9;
 
-import './zkVerifier16lvls.sol';
+import './Verifier.sol';
 
 contract AnonVoting {
     Verifier    verifier;
