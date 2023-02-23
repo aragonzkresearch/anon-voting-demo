@@ -120,7 +120,7 @@ describe("ClientLib", function () {
 			assert(circuit.zkey != undefined);
 			assert(circuit.witnessCalcWasm != undefined);
 
-			const proofAndPI = await av.genZKProof(circuit.zkey,
+			const proofAndPI = await av.genZKProof(snarkjs, circuit.zkey,
 				circuit.witnessCalcWasm, processID,
 				census.root(), merkleproof, vote);
 
@@ -430,7 +430,7 @@ describe("ClientLib", function () {
 			const voteBool = true;
 
 			// cast vote
-			await av.castVote(signer, circuit.zkey,
+			await av.castVote(snarkjs, signer, circuit.zkey,
 				circuit.witnessCalcWasm, processID.toString(),
 				census.root(), merkleproof, voteBool);
 		});

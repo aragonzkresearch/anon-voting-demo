@@ -8,7 +8,6 @@ const { utils: ffutils } = require('ffjavascript');
 const {ethers} = require("ethers");
 
 const WitnessCalculatorBuilder = require("circom_runtime").WitnessCalculatorBuilder;
-const snarkjs = require("snarkjs");
 
 async function buildAnonVote(chainID, nLevels) {
 	const poseidon = await buildPoseidonReference();
@@ -110,7 +109,7 @@ class AnonVote {
 		return inputs;
 	}
 
-	async genZKProof(zkey, witnessCalcWasm, processID, censusRoot, merkleproof, vote) {
+	async genZKProof(snarkjs, zkey, witnessCalcWasm, processID, censusRoot, merkleproof, vote) {
 		const inputs = this.prepareZKInputs(processID, censusRoot, merkleproof, vote);
 
 		let proof, publicInputs;
@@ -216,7 +215,7 @@ class AnonVote {
 	getMerkleProof() {}
 	getProvingKey() {}
 
-	async castVote(signer, zkey, witnessCalcWasm, processID, censusRoot, merkleproof, voteBool) {
+	async castVote(snarkjs, signer, zkey, witnessCalcWasm, processID, censusRoot, merkleproof, voteBool) {
 		if (!this.web3gw) {
 			throw new Error("web3gw not defined. Use connect() first");
 		}
@@ -228,7 +227,7 @@ class AnonVote {
 		}
 
 		// prepare the inputs and generate the zkproof
-		let proofAndPI = await this.genZKProof(zkey, witnessCalcWasm,
+		let proofAndPI = await this.genZKProof(snarkjs, zkey, witnessCalcWasm,
 			processID, censusRoot, merkleproof, vote);
 
 		// call contract vote method sending the proof
