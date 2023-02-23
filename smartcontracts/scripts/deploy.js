@@ -8,28 +8,63 @@ const {ethers, run} = require("hardhat");
 
 async function main() {
 
-  const DEFAULT_MIN_TURNOUT = 25; // 25%
-  const DEFAULT_MIN_MAJORITY = 50; // 50%
+  // Deploy ZkVerifier contract to verify the anonymous election votes
+  const ZkVerifier = await ethers.getContractFactory("Verifier");
+  const zkVerifier = await ZkVerifier.deploy();
+
+  await zkVerifier.deployed();
+  console.log("ZkVerifier deployed to:", zkVerifier.address);
 
 
+  // Deploy AnonVoting contract
   const AnonVoting = await ethers.getContractFactory("AnonVoting");
-  const anonVoting = await AnonVoting.deploy(DEFAULT_MIN_TURNOUT, DEFAULT_MIN_MAJORITY);
+  const anonVoting = await AnonVoting.deploy(zkVerifier.address);
 
   await anonVoting.deployed();
 
-  console.log("Verifying contract on Etherscan...");
+  // Wait for 60 seconds to make sure the contract is deployed
+  console.log("Waiting for 60 seconds to make sure the contract is registered by Etherscan...");
+  await new Promise(r => setTimeout(r, 60000));
+
+  console.log("AnonVoting deployed to:", anonVoting.address);
+
+  console.log("Verifying contracts on Etherscan...");
+  try {
+    await run("verify:verify", {
+      address: zkVerifier.address,
+      constructorArguments: [
+      ],
+    });
+    console.log("ZkVerifier contract verified on Etherscan!");
+  } catch (error) {
+    // If the error contains "Reason: Already Verified", it means the contract is already verified, so we can ignore it
+    if (error.message.includes("Reason: Already Verified")) {
+        console.log("ZkVerifier contract already verified on Etherscan!");
+    } else {
+      console.log("Error while verifying ZkVerifier contract on Etherscan:", error);
+    }
+  }
+
   try {
     await run("verify:verify", {
       address: anonVoting.address,
       constructorArguments: [
-        DEFAULT_MIN_TURNOUT,
-        DEFAULT_MIN_MAJORITY
+        zkVerifier.address
       ],
     });
-    console.log("Token contract verified on Etherscan!");
+    console.log("AnonVoting contract verified on Etherscan!");
   } catch (error) {
-    console.log("Error while verifying Token contract on Etherscan:", error);
+    // If the error contains "Reason: Already Verified", it means the contract is already verified, so we can ignore it
+    if (error.message.includes("Reason: Already Verified")) {
+      console.log("ZkVerifier contract already verified on Etherscan!");
+    } else {
+      console.log("Error while verifying ZkVerifier contract on Etherscan:", error);
+    }
   }
+
+  // Print the contract addresses
+  console.log("ZkVerifier contract address:", zkVerifier.address);
+  console.log("AnonVoting contract address:", anonVoting.address);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
