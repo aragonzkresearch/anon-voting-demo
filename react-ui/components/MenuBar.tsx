@@ -25,10 +25,8 @@ export default function MenuBar({page}) {
   } = useMetamask();
   const listen = useListen();
 
-  const showInstallMetamask =
-    status !== "pageNotLoaded" && !isMetamaskInstalled;
   const showConnectButton =
-    status !== "pageNotLoaded" && isMetamaskInstalled && !wallet;
+    status !== "pageNotLoaded" && !wallet;
 
   const isConnected = status !== "pageNotLoaded" && typeof wallet === "string";
 
@@ -122,7 +120,8 @@ export default function MenuBar({page}) {
       			  {showConnectButton && (
                   <button
             		onClick={status === "loading" ? handleDisconnect : handleConnect}
-                    className="inline-flex justify-center rounded-md border border-white bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                    className={`inline-flex justify-center rounded-md border border-white bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${!isMetamaskInstalled && 'opacity-50 cursor-not-allowed'}`}
+                    disabled={!isMetamaskInstalled}
                   > 
             {status === "loading" ? <Loading /> : "Connect to Metamask"}
 					</button>
