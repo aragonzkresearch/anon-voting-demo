@@ -1,10 +1,12 @@
 import type { NextPage } from "next";
+import Script from 'next/script'
 import { useEffect } from "react";
-import Vote from "../components/Vote";
-import MenuBar from "../components/MenuBar";
-import CastVote from "../components/CastVote";
 import { useListen } from "../hooks/useListen";
 import { useMetamask } from "../hooks/useMetamask";
+
+import MenuBar from "../components/MenuBar";
+import Vote from "../components/Vote";
+import CastVote from "../components/CastVote";
 
 const Home: NextPage = () => {
   const { dispatch } = useMetamask();
@@ -34,13 +36,15 @@ const Home: NextPage = () => {
 
       dispatch({ type: "pageLoaded", isMetamaskInstalled, wallet, balance });
     }
+	// eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
 
   return (
     <>
-      <MenuBar page={'vote'} />
-      <Vote />
+		<Script src="/snarkjs.min.js" />
+		<MenuBar page={'vote'} />
+		<Vote />
     </>
   );
 };

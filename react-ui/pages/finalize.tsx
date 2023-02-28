@@ -33,6 +33,7 @@ const Home: NextPage = () => {
 
       dispatch({ type: "pageLoaded", isMetamaskInstalled, wallet, balance });
     }
+	// eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
 

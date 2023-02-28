@@ -15,6 +15,12 @@ export default function MakeCensus() {
 			let proof = await census.generateProof(0);
 	
 			document.getElementById('census-root').value = proof.censusRoot;
+
+			let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(proof));
+			let dlAnchorElem = document.getElementById('downloadAnchorElem');
+			dlAnchorElem.setAttribute("href", dataStr);
+			dlAnchorElem.setAttribute("download", "census_proof.json");
+			dlAnchorElem.click();
 		} catch (err) {
 			console.error(err);
 		}
@@ -35,6 +41,7 @@ export default function MakeCensus() {
   return (
     <>
       <div className="mx-auto max-w-7xl py-6 sm:px-6 lg:px-8">
+		<a id="downloadAnchorElem" style={{display: 'none'}}></a>
       <div>
         <div className="md:grid md:grid-cols-3 md:gap-6">
           <div className="md:col-span-1">
@@ -43,7 +50,7 @@ export default function MakeCensus() {
               Build the vote census
             </h3>
             <p className="mt-4 text-xl text-gray-500">
-              If you've gathered all of the keys from the voters, you can now build the census needed for the voting process
+              If you&apos;ve gathered all of the keys from the voters, you can now build the census needed for the voting process
             </p>
           </div>
           </div>
@@ -71,7 +78,7 @@ export default function MakeCensus() {
                       />
                     </div>
                     <p className="mt-2 text-sm text-gray-500">
-                      One key per line, please. Otherwise this won't work
+                      One key per line, please. Otherwise this won&apos;t work
                     </p>
                   </div>
 

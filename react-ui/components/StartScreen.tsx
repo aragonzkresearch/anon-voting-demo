@@ -1,9 +1,11 @@
-/* This example requires Tailwind CSS v3.0+ */
+import Link from "next/link";
+import Image from "next/image";
+
 export default function StartScreen() {
   return (
-    <div className="bg-white">
+    <div className="bg-transparent">
       <div className="mx-auto max-w-7xl py-24 sm:px-6 sm:py-32 lg:px-8">
-        <div className="relative isolate overflow-hidden bg-gray-900 px-6 pt-16 shadow-2xl sm:rounded-3xl sm:px-16 md:pt-24 lg:flex lg:gap-x-20 lg:px-24 lg:pt-0">
+        <div className="relative isolate overflow-hidden bg-gray-900 px-6 pt-16 shadow-2xl sm:rounded-3xl sm:px-16 md:pt-24 lg:flex lg:gap-x-20 lg:px-24 lg:pt-0 bg-opacity-90">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 1024 1024"
@@ -27,21 +29,22 @@ export default function StartScreen() {
               This one works today!
             </p>
             <div className="mt-10 flex items-center justify-center gap-x-6 lg:justify-end">
-              <a href="/keygen"
-                className="rounded-md bg-transparent px-3.5 py-1.5 text-white border border-white hover:text-black hover:bg-white font-semibold leading-7 text-gray-900 shadow-sm hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-              >
-                Let's get started <span aria-hidden="true">→</span>
-              </a>
+				<Link href="/keygen">
+                <div style={{cursor: 'pointer'}} className="rounded-md bg-transparent px-3.5 py-1.5 text-white border border-white hover:text-black hover:bg-white font-semibold leading-7 text-gray-900 shadow-sm hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
+                Let&apos;s get started <span aria-hidden="true">→</span>
+				</div>
+				</Link>
             </div>
           </div>
           <div className="relative mt-16 h-80 lg:mt-8">
-            <img
-              className="absolute top-0 left-0 w-[57rem] max-w-none rounded-md bg-white/5 ring-1 ring-white/10"
-              src="darkvote.jpg"
+            <div className="absolute top-0 left-0 w-[57rem] max-w-none rounded-md bg-white/5 ring-1 ring-white/10">
+				<Image
+              src="/darkvote.jpg"
               alt="App screenshot"
               width={1824}
               height={1080}
             />
+          </div>
           </div>
         </div>
       </div>

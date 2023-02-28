@@ -58,7 +58,7 @@ export default function KeyGen() {
           <div className="md:col-span-1">
 			<div className="shadow sm:max-w-lg sm:rounded-md px-4 py-5 bg-white bg-opacity-50">
             <h3 className="font text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl">
-              First you'll need the keys
+              First you&apos;ll need the keys
             </h3>
             <p className="mt-4 text-xl text-gray-500">
               Step one is to generate a ZK friendly keypair. The input for this operation is your Ethereum public key that will be retrieved from Metamask.
@@ -69,7 +69,7 @@ export default function KeyGen() {
               <div className="shadow sm:overflow-hidden sm:rounded-md">
                 <div className="space-y-6 bg-white px-4 py-5 sm:p-6">
             <p className="mt-4 text-xl text-gray-600">
-              Click on the "Connect to Metamask" button to get started.
+              Click on the &quot;Connect to Metamask&quot; button to get started.
             </p>
                     <div className="col-span-6">
                       <label htmlFor="private-address" className="block text-sm font-medium text-gray-700">

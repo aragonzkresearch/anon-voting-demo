@@ -1,10 +1,37 @@
+import { AnonVote, buildAnonVote } from "../hooks/anonvote";
+import { ethers } from "ethers";
 import { Fragment, useRef, useState } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 
 export default function FinalizePopup({open, close, id}) {
 
-  const cancelButtonRef = useRef(null)
+	const cancelButtonRef = useRef(null)
+
+	const voteFinalize = async () => {
+		try {
+			const nLevels = 16;
+			const currentChain = await ethereum.request({ method: 'eth_chainId' });
+
+			const web3gw = new ethers.providers.Web3Provider(window.ethereum)
+			const signer = await web3gw.getSigner();
+			const anonVotingAddress = "0xcf66FfaFe927202a71F2C0918e83FfBF19fE15e8";
+
+			// Get stuff from the chain
+			const av = await buildAnonVote(currentChain, nLevels);
+			await av.connect(web3gw, anonVotingAddress);
+
+			let finalized = await av.closeProcess(id, signer);
+
+			if (finalized.hash !== "") {
+			return setTimeout(function() {
+				close;
+			}, 2000);
+			}
+		} catch (err) {
+			console.error(err);
+		}
+	};
 
   return (
     <Transition.Root show={open} as={Fragment}>
@@ -69,11 +96,11 @@ export default function FinalizePopup({open, close, id}) {
                   <button
                     type="button"
                     className="mt-3 inline-flex w-full justify-center rounded-md border border-transparent bg-green-500 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
-                    onClick={close}
+                    onClick={voteFinalize}
                   >
                     Finalize&nbsp;
-<svg xmlns="http://www.w3.org/2000/svg" fill="transparent" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-  <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
+<svg xmlns="http://www.w3.org/2000/svg" fill="transparent" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
+  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
 </svg>
                   </button>
                   </div>

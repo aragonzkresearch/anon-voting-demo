@@ -1,6 +1,9 @@
 import { useListen } from "../hooks/useListen";
 import { useMetamask } from "../hooks/useMetamask";
 import { Loading } from "./Loading";
+import Link from "next/link";
+import Image from "next/image";
+import { useRouter } from 'next/router';
 
 import { Fragment } from 'react'
 import { Disclosure, Menu, Transition } from '@headlessui/react'
@@ -23,10 +26,10 @@ export default function MenuBar({page}) {
     dispatch,
     state: { status, isMetamaskInstalled, wallet, balance },
   } = useMetamask();
+
   const listen = useListen();
 
-  const showConnectButton =
-    status !== "pageNotLoaded" && !wallet;
+  const showConnectButton = status !== "pageNotLoaded" && !wallet;
 
   const isConnected = status !== "pageNotLoaded" && typeof wallet === "string";
 
@@ -69,16 +72,11 @@ export default function MenuBar({page}) {
     });
   };
 
+  const router = useRouter();
+  const currentRoute = router.pathname;
+
   return (
     <>
-      {/*
-        This example requires updating your template:
-
-        ```
-        <html class="h-full bg-gray-100">
-        <body class="h-full">
-        ```
-      */}
       <div className="min-h-full">
         <Disclosure as="nav" className="bg-gray-800">
           {({ open }) => (
@@ -87,30 +85,31 @@ export default function MenuBar({page}) {
                 <div className="flex h-16 items-center justify-between">
                   <div className="flex items-center">
                     <div className="flex-shrink-0">
-						<a href="/">
-                      <img
-                        className="h-8 w-8"
-                        src="favicon.png"
-                        alt="Your Company"
-                      />
-						</a>
+						<div className="h-8 w-8" style={{cursor: 'pointer'}}>
+							<Link href="/" passHref>
+								<a>
+								<Image
+									src="/favicon.png"
+									height={50}
+									width={50}
+									alt="Aragon"
+								/>
+								</a>
+							</Link>
+						</div>
                     </div>
                     <div className="hidden md:block">
                       <div className="ml-10 flex items-baseline space-x-4">
                         {navigation.map((item) => (
-                          <a
-                            key={item.name}
-                            href={item.href}
-                            className={classNames(
-                              page === item.current
-                                ? 'bg-gray-900 text-white'
-                                : 'text-gray-300 hover:bg-gray-700 hover:text-white',
-                              'px-3 py-2 rounded-md text-sm font-medium'
-                            )}
-                            aria-current={page === item.current ? 'page' : undefined}
-                          >
-                            {item.name}
-                          </a>
+					<Link href={item.href} key={item.name} passHref>
+					<a
+                      className={classNames(
+                        currentRoute === item.href ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white',
+                        'block px-3 py-2 rounded-md text-base font-medium'
+                      )} >
+                      {item.name}
+					</a>
+					</Link>
                         ))}
                       </div>
                     </div>
@@ -120,7 +119,7 @@ export default function MenuBar({page}) {
       			  {showConnectButton && (
                   <button
             		onClick={status === "loading" ? handleDisconnect : handleConnect}
-                    className={`inline-flex justify-center rounded-md border border-white bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${!isMetamaskInstalled && 'opacity-50 cursor-not-allowed'}`}
+					className={`inline-flex justify-center rounded-md border border-white bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${!isMetamaskInstalled && 'opacity-50 cursor-not-allowed'}`}
                     disabled={!isMetamaskInstalled}
                   > 
             {status === "loading" ? <Loading /> : "Connect to Metamask"}
