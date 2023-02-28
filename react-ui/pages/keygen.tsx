@@ -4,6 +4,7 @@ import KeyGen from "../components/KeyGen";
 import MenuBar from "../components/MenuBar";
 import { useListen } from "../hooks/useListen";
 import { useMetamask } from "../hooks/useMetamask";
+import { AnonVote, buildAnonVote } from "../hooks/anonvote";
 
 const Home: NextPage = () => {
   const { dispatch } = useMetamask();
@@ -33,8 +34,8 @@ const Home: NextPage = () => {
 
       dispatch({ type: "pageLoaded", isMetamaskInstalled, wallet, balance });
     }
+	// eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
 
   return (
     <>

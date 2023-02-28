@@ -17,7 +17,7 @@ export default function Finalize() {
       <div className="mx-auto max-w-7xl py-6 sm:px-6 lg:px-8">
         <div className="md:grid md:grid-cols-3 md:gap-6">
           <div className="md:col-span-1">
-			<div className="sm:max-w-lg">
+			<div className="shadow sm:max-w-lg sm:rounded-md px-4 py-5 bg-white bg-opacity-50">
             <h3 className="font text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl">
               Finalize the voting process
             </h3>
@@ -30,7 +30,7 @@ export default function Finalize() {
           </div>
         </div>
         <div className="mt-5 md:col-span-2 md:mt-0">
-          <div className="border-t border-gray-200">
+          <div className="sm:rounded-lg border-t border-transparent overflow-hidden">
 			<ProcessList
 				clickAction={handleCallback}
 				actionIcon={'finalize'}
