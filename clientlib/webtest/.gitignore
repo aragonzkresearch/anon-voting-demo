@@ -1,0 +1,5 @@
+anonvote-browser.js
+*.wasm
+*.zkey
+*.min.js
+*.json

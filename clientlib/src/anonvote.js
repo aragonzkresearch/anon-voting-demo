@@ -1,4 +1,3 @@
-
 const { buildPoseidonReference, buildEddsa, buildBabyjub } = require(
 	"circomlibjs",
 );
