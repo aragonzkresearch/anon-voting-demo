@@ -155,7 +155,11 @@ describe("ClientLib", function () {
 			// Get a signer from hardhat
 			const signer = (await ethers.getSigners())[0];
 
-			const {privateKey, publicKey, compressedPublicKey } = await av.generateKey(signer);
+			const text = "ANONVOTE KEY GENERATION SECRET";
+			const signature = await signer.signMessage(text);
+
+			//const {privateKey, publicKey, compressedPublicKey } = await av.generateKey(signer);
+			const {privateKey, publicKey, compressedPublicKey } = await av.generateKey(signature);
 
 			// Check that the private key is 32 bytes long hex string (0x prefix + 64 hex chars)
 			expect(privateKey).to.match(/^0x[0-9a-fA-F]{64}$/);

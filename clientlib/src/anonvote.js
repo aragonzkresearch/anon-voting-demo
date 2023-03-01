@@ -1,12 +1,24 @@
-const { buildPoseidonReference, buildEddsa, buildBabyjub } = require(
-	"circomlibjs",
-);
-
+/*
+ * Use the "require" lines for nodejs testing
+ *
+ * Use the "import" lines for React
+ *
+ * There's also different a "export" line at the end of the file 
+ */
+// The following 4 lines for nodejs
+const { buildPoseidonReference, buildEddsa, buildBabyjub } = require("circomlibjs");
 const { utils: ffutils } = require('ffjavascript');
-
 const {ethers} = require("ethers");
-
 const WitnessCalculatorBuilder = require("circom_runtime").WitnessCalculatorBuilder;
+
+/*
+ * These 5 lines are for React
+import { buildPoseidonReference, buildEddsa, buildBabyjub } from "circomlibjs";
+import { utils } from 'ffjavascript';
+import { ffutils } from 'ffjavascript';
+import { ethers } from "ethers";
+import { WitnessCalculatorBuilder } from "circom_runtime";
+*/
 
 async function buildAnonVote(chainID, nLevels) {
 	const poseidon = await buildPoseidonReference();
@@ -48,10 +60,7 @@ class AnonVote {
 	// To generate the private key, we use the users signature over "AnonVote Key Generation Secret"
 	// Then we hash the signature to get a 32-byte private key
 	// The public key is computed from the private key using the BabyJubJub curve
-	async generateKey(signer) {
-		const text = "ANONVOTE KEY GENERATION SECRET";
-		const signature = await signer.signMessage(text);
-
+	async generateKey(signature) {
 		const privateKey = ethers.utils.keccak256(signature);
 
 		// Compute the public key by hashing the private key to the BabyJubJub curve
@@ -63,7 +72,7 @@ class AnonVote {
 
 
 		// Compute the compressed public key
-		const compressedPublicKey = ffutils.leBuff2int(this.babyjub.packPoint(publicKey))
+		const compressedPublicKey = utils.leBuff2int(this.babyjub.packPoint(publicKey))
 		this.compressedPublicKey = ethers.utils.hexZeroPad(`0x${compressedPublicKey.toString(16)}`, 32);
 
 		return {privateKey: this.privateKey, publicKey: this.publicKey, compressedPublicKey: this.compressedPublicKey };
@@ -262,4 +271,7 @@ class AnonVote {
 	}
 }
 
+// Next line for nodejs
 module.exports = { AnonVote, buildAnonVote };
+// Next line for React
+//export { AnonVote, buildAnonVote };
