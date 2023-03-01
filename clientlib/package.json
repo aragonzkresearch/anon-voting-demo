@@ -7,7 +7,7 @@
 	},
 	"scripts": {
 		"pretest": "mkdir -p test/circuits",
-		"postinstall": "cd node_modules && git clone https://github.com/aragonzkresearch/ovote.git && rm -rf .git && cd ovote/circuits && npm install",
+		"postinstall": "cd node_modules && git clone https://github.com/aragonzkresearch/ovote.git && rm -rf .git && cd ovote/circuits && npm install && pwd && cd ../../../webtest && bash prepare-files.sh",
 		"test": "npx hardhat test"
 	},
 	"author": "AragonZKResearch",
@@ -27,6 +27,7 @@
 		"circom_tester": "0.0.19",
 		"circomlib": "^2.0.5",
 		"circomlibjs": "0.1.7",
-		"snarkjs": "0.6.1"
+		"browserify": "^16.5.0",
+		"snarkjs": "0.5.0"
 	}
 }

@@ -83,6 +83,7 @@ describe("ClientLib", function () {
 
 			const inputs = await av.prepareZKInputs(processID,
 				census.root(), merkleproof, vote);
+			// console.log("INPUTS", JSON.stringify(inputs));
 
 			const witness = await cir.calculateWitness(inputs, true);
 			await cir.checkConstraints(witness);

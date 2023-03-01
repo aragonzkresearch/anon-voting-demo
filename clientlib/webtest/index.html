@@ -1,0 +1,160 @@
+<!--
+  Before using this html file, execute the prepare-files.sh script:
+  ./prepare-files.sh
+-->
+
+
+<body>
+
+  <h1>Web-browser proof generation</h1>
+  <!--<pre> Inputs (priv and pub):<br><textarea rows="15" cols="100" id="inputs"></textarea></pre>-->
+  <hr/>
+  <button style="background:green;color:white;" id="bGenProofSnarkjs"> Create proof with snarkjs</button>
+  <button style="background:blue;color:white;" id="bGenProofAnonVote"> Create proof anonvote (interanlly uses snarkjs)</button>
+
+  <!-- JS-generated output will be added here. -->
+  <pre style="background:gray;color:white;padding:10px;"><code id="process"></code></pre>
+  <pre> PublicInputs: <code id="pubinputs"></code></pre>
+  <pre style="font-size:110%;font-weight:bold;"> Proof: <code id="proof"></code></pre>
+
+  <pre> Proof verification result: <code id="result"></code></pre>
+
+
+  <script src="snarkjs.min.js">   </script>
+  <script src="anonvote-browser.js">   </script>
+
+  <script>
+
+    const processComponent = document.getElementById('process');
+    const pubinputsComponent = document.getElementById('pubinputs');
+    const proofComponent = document.getElementById('proof');
+    const resultComponent = document.getElementById('result');
+    const bGenProofSnarkjs = document.getElementById("bGenProofSnarkjs");
+    const bGenProofAnonVote = document.getElementById("bGenProofAnonVote");
+
+    // The following inputs have been generated from clientlib/test/anonvote.test.js:
+    let inputs = JSON.parse(`{"chainID":31337,"processID":3,"censusRoot":"21823409822845156879367346550439134574128510197817385772757622927609968453408","weight":"1","nullifier":"2118624858783697088557452517993261412014268393748737523839644268649750802296","vote":"1","index":0,"pubKx":"2569576045372151897198600091807190277665166796921170586638173224635912364618","pubKy":"8367124925961627570203980582861934506889994022933242537504348096841029709234","s":"2162856464029233152925120771989671772743701830833900208241812525559461361991","rx":"16471296400359947646328242651533653682454677210915713826977591409321273684668","ry":"10390506061624479754173991255480962997246401788338591644347205492379856344462","siblings":["19731315546057653968717088736499515925168638683482245252119485029347259171359","2731869504198324124012796404312375471348318453373705417337594887313048749020","1937712513098443831764006949065207255963094859350690390225240082317179683999","13999234726438510274021090982621494386354278662044399984666973552053828923549",0,0,0,0,0,0,0,0,0,0,0,0,0]}`);
+
+    console.log("inputs", inputs);
+
+    bGenProofSnarkjs.addEventListener("click", calculateProofWithSnarkjs);
+    bGenProofAnonVote.addEventListener("click", calculateProofWithAnonVote);
+
+
+    function clearOutputs() {
+          processComponent.innerHTML = "";
+          pubinputsComponent.innerHTML = "";
+          proofComponent.innerHTML = "";
+          resultComponent.innerHTML = "";
+    }
+
+    async function calculateProofWithSnarkjs() {
+          clearOutputs();
+          process.innerHTML="<h3>calculateProof directly with snarkjs</h3>";
+          process.innerHTML+="(using hardcoded inputs)";
+          process.innerHTML+="<br>computing the proof with snarkjs";
+          const { proof, publicSignals } = await snarkjs.groth16.fullProve( inputs, "circuit16.wasm", "circuit16.zkey");
+          process.innerHTML+="<br>proof generated correctly";
+
+          proofComponent.innerHTML = JSON.stringify(proof, null, 1);
+          pubinputsComponent.innerHTML = JSON.stringify(publicSignals, null, 1);
+
+
+          const vkey = await fetch("verification_key.json").then( function(res) {
+                return res.json();
+              });
+
+          const res = await snarkjs.groth16.verify(vkey, publicSignals, proof);
+          resultComponent.innerHTML = res;
+
+          process.innerHTML+="<br>proof verified";
+          process.innerHTML+="<br>DONE";
+    }
+
+    const fromHexString = (hexString) =>
+            new Uint8Array(hexString.match(/.{1,2}/g).map((byte) => parseInt(byte, 16)));
+
+    async function calculateProofWithAnonVote() {
+          clearOutputs();
+          process.innerHTML="<h3>calculateProof with AnonVote (internally uses snarkjs)</h3>";
+
+          process.innerHTML+="(using generated inputs)";
+          process.innerHTML+="<br>preparing census in-browser";
+          const nLevels = 16;
+          const chainID = 31337;
+          const processID = 3;
+          const av = await anonvote.buildAnonVote(chainID, nLevels);
+          const census = await anonvote.buildCensus(nLevels);
+
+          // simulate key generation
+          const privateKey = fromHexString(
+                "0001020304050607080900010203040506070809000102030405060708090000",
+              );
+          const publicKey = av.eddsa.prv2pub(privateKey);
+          av.privateKey = privateKey;
+          av.publicKey = publicKey;
+
+          // gen other pubKeys
+          let publicKeys = [av.publicKey];
+          for (let i=1; i<10; i++) {
+                const privateKey = fromHexString(
+                      "000102030405060708090001020304050607080900010203040506070809000"+i,
+                    );
+                const publicKey = av.eddsa.prv2pub(privateKey);
+                publicKeys.push(publicKey);
+              }
+
+          await census.addKeys(publicKeys);
+
+          const merkleproof = await census.generateProof(0);
+          const vote = "1";
+
+          process.innerHTML+="<br>computing the proof with anonvote clientlib (which internally uses snarkjs)";
+
+          // see 'NOTE' below
+          const proofAndPI = await av.genZKProof(snarkjs, "circuit16.zkey",
+                "circuit16.wasm", processID,
+                census.root(), merkleproof, vote);
+          // NOTE:
+          // Here, instead of calling 'av.genZKProof(...)', the browser will
+          // call 'av.castVote(...)', with almost the same parameters plus the
+          // web3 signer, which will be used internally to sign the ethereum tx
+          // that will be sent.
+
+          process.innerHTML+="<br>proof generated correctly";
+
+          proofComponent.innerHTML = JSON.stringify(proofAndPI.proof, null, 1);
+          pubinputsComponent.innerHTML = JSON.stringify(proofAndPI.publicInputs, null, 1);
+
+
+          const vkey = await fetch("verification_key.json").then( function(res) {
+                return res.json();
+              });
+
+          // the publicInputs format for snarkjs is different than the one used inthe  solidity contracts. Prepare the proof & publicInputs for snarkjs:
+          let p = proofAndPI.proof;
+          let proofNoSolidity = { // proof in snarkjs expected format
+                pi_a: p[0],
+                pi_b: [
+                      [p[1][0][1], p[1][0][0]],
+                      [p[1][1][1], p[1][1][0]]
+                    ],
+                pi_c: p[2]
+              };
+          let publicInputs = [ // publicInputs in snarkjs expected format
+                proofAndPI.publicInputs.chainID,
+                proofAndPI.publicInputs.processID,
+                proofAndPI.publicInputs.censusRoot,
+                proofAndPI.publicInputs.weight,
+                proofAndPI.publicInputs.nullifier,
+                proofAndPI.publicInputs.vote
+              ];
+          const res = await snarkjs.groth16.verify(vkey, publicInputs, proofNoSolidity);
+          resultComponent.innerHTML = res;
+
+          process.innerHTML+="<br>proof verified";
+          process.innerHTML+="<br>DONE";
+    }
+  </script>
+</body>
+</html>
