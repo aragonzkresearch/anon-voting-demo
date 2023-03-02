@@ -1,24 +1,7 @@
-/*
- * Use the "require" lines for nodejs testing
- *
- * Use the "import" lines for React
- *
- * There's also different a "export" line at the end of the file 
- */
-// The following 4 lines for nodejs
-const { buildPoseidonReference, buildEddsa, buildBabyjub } = require("circomlibjs");
-const { utils: ffutils } = require('ffjavascript');
-const {ethers} = require("ethers");
-const WitnessCalculatorBuilder = require("circom_runtime").WitnessCalculatorBuilder;
-
-/*
- * These 5 lines are for React
 import { buildPoseidonReference, buildEddsa, buildBabyjub } from "circomlibjs";
-import { utils } from 'ffjavascript';
-import { ffutils } from 'ffjavascript';
-import { ethers } from "ethers";
-import { WitnessCalculatorBuilder } from "circom_runtime";
-*/
+import { utils as ffutils} from 'ffjavascript';
+import {ethers} from "ethers";
+import {WitnessCalculatorBuilder} from "circom_runtime";
 
 async function buildAnonVote(chainID, nLevels) {
 	const poseidon = await buildPoseidonReference();
@@ -271,7 +254,4 @@ class AnonVote {
 	}
 }
 
-// Next line for nodejs
-module.exports = { AnonVote, buildAnonVote };
-// Next line for React
-//export { AnonVote, buildAnonVote };
+export { AnonVote, buildAnonVote };

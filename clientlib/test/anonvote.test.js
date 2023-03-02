@@ -1,18 +1,25 @@
-const {
+import {
 	loadFixture,
-} = require("@nomicfoundation/hardhat-network-helpers");
+} from "@nomicfoundation/hardhat-network-helpers";
 
-const { assert, expect } = require("chai");
-const { ethers } = require("hardhat");
+import {assert, expect } from "chai";
+import "@nomiclabs/hardhat-ethers";
 
-const path = require("path");
-const fs = require("fs");
-const { promises: pfs } = require("fs");
-const wasm_tester = require("circom_tester").wasm;
-const snarkjs = require("snarkjs");
+import path from "path";
+import url from 'url';
+const __filename = url.fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-const {buildAnonVote} = require("../src/anonvote.js");
-const {buildCensus} = require("../src/census.js");
+import fs from "fs";
+import {promises} from "fs";
+const pfs = promises;
+import {wasm} from "circom_tester";
+const wasm_tester = wasm;
+import * as snarkjs from "snarkjs";
+
+import {buildAnonVote} from "../src/anonvote.js";
+import {buildCensus} from "../src/census.js";
+
 const fromHexString = (hexString) =>
 	new Uint8Array(hexString.match(/.{1,2}/g).map((byte) => parseInt(byte, 16)));
 
@@ -49,7 +56,7 @@ describe("ClientLib", function () {
 			`;
 			fs.writeFileSync(circuitPath, circuitCode, "utf8");
 
-			cir = await wasm_tester(circuitPath);
+			let cir = await wasm_tester(circuitPath);
 
 			await cir.loadConstraints();
 
@@ -158,7 +165,6 @@ describe("ClientLib", function () {
 			const text = "ANONVOTE KEY GENERATION SECRET";
 			const signature = await signer.signMessage(text);
 
-			//const {privateKey, publicKey, compressedPublicKey } = await av.generateKey(signer);
 			const {privateKey, publicKey, compressedPublicKey } = await av.generateKey(signature);
 
 			// Check that the private key is 32 bytes long hex string (0x prefix + 64 hex chars)
