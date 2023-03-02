@@ -46,4 +46,4 @@ class Census {
 
 }
 
-module.exports = { Census, buildCensus };
+export { Census, buildCensus };
