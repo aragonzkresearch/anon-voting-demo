@@ -64,15 +64,15 @@ class AnonVote {
 		const privateKey = ethers.utils.keccak256(signature);
 
 		// Compute the public key by hashing the private key to the BabyJubJub curve
-		const publicKey = this.eddsa.prv2pub(privateKey)
+		const publicKey = this.eddsa.prv2pub(privateKey);
 
 		// Store the private and public key
-		this.privateKey = privateKey
-		this.publicKey = [publicKey[0].toString(), publicKey[1].toString()]
+		this.privateKey = privateKey;
+		this.publicKey = [publicKey[0].toString(), publicKey[1].toString()];
 
 
 		// Compute the compressed public key
-		const compressedPublicKey = utils.leBuff2int(this.babyjub.packPoint(publicKey))
+		const compressedPublicKey = ffutils.leBuff2int(this.babyjub.packPoint(publicKey));
 		this.compressedPublicKey = ethers.utils.hexZeroPad(`0x${compressedPublicKey.toString(16)}`, 32);
 
 		return {privateKey: this.privateKey, publicKey: this.publicKey, compressedPublicKey: this.compressedPublicKey };
