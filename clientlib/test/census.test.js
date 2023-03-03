@@ -1,7 +1,7 @@
-const { assert, expect } = require("chai");
+import { assert, expect } from "chai";
 
-const {buildCensus} = require("../src/census.js");
-const {buildAnonVote} = require("../src/anonvote.js");
+import {buildCensus} from "../src/census.js";
+import {buildAnonVote} from "../src/anonvote.js";
 
 
 const fromHexString = (hexString) =>

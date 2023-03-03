@@ -1,16 +1,4 @@
-/*
- * Use the "require" line for nodejs testing
- *
- * Use the "import" line for React
- *
- * There's also different a "export" line at the end of the file 
- */
-
-// The following line for nodejs
-const { newMemEmptyTrie, buildPoseidonReference } = require("circomlibjs");
-
-// The following line for React
-//import { newMemEmptyTrie, buildPoseidonReference } from "circomlibjs";
+import { newMemEmptyTrie, buildPoseidonReference } from "circomlibjs";
 
 async function buildCensus(nLevels) {
 	const poseidon = await buildPoseidonReference();
@@ -58,7 +46,4 @@ class Census {
 
 }
 
-// This line for nodejs
-module.exports = { Census, buildCensus };
-// This line for React
-//export { Census, buildCensus };
+export { Census, buildCensus };

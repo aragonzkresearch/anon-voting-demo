@@ -1,33 +1,35 @@
 {
 	"name": "anon-vote-clientlib",
+	"type": "module",
 	"version": "0.0.1",
 	"description": "anon-vote clientlib",
+	"main": "./src/main.js",
+	"module": "./src/main.js",
 	"directories": {
 		"test": "test"
 	},
 	"scripts": {
+		"postinstall": "cd node_modules && git clone https://github.com/aragonzkresearch/ovote.git && rm -rf .git && cd ovote/circuits && npm install && cd ../../../webtest && bash prepare-files.sh",
 		"pretest": "mkdir -p test/circuits",
-		"postinstall": "cd node_modules && git clone https://github.com/aragonzkresearch/ovote.git && rm -rf .git && cd ovote/circuits && npm install && pwd && cd ../../../webtest && bash prepare-files.sh",
 		"test": "npx hardhat test"
 	},
 	"author": "AragonZKResearch",
 	"license": "GPL-3.0",
 	"dependencies": {
-		"ethers": "^5.5.3",
-		"ffjavascript": "^0.2.57",
 		"circom_runtime": "0.1.22",
-		"ethers": "^5.5.3"
+		"ethers": "^5.5.3",
+		"ffjavascript": "^0.2.57"
 	},
 	"devDependencies": {
 		"@nomicfoundation/hardhat-toolbox": "^2.0.1",
 		"@nomiclabs/hardhat-ethers": "^2.0.4",
+		"browserify": "^16.5.0",
 		"chai": "^4.3.4",
-		"hardhat": "^2.12.4",
-		"mocha": "^9.1.2",
 		"circom_tester": "0.0.19",
 		"circomlib": "^2.0.5",
 		"circomlibjs": "0.1.7",
-		"browserify": "^16.5.0",
+		"hardhat": "^2.13.0-esm.1",
+		"mocha": "^9.1.2",
 		"snarkjs": "0.5.0"
 	}
 }
