@@ -100,10 +100,14 @@ contract AnonVoting {
         if (_vote) {
             voteU256 = 1;
         }
+        uint256 cid;
+        assembly {
+            cid := chainid()
+        }
 
         // build inputs array (using Process parameters from processes mapping)
         uint256[6] memory inputs = [
-            uint256(31337),
+            uint256(cid),
             _processID,
             process.censusRoot,
             weight,
