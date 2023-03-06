@@ -1,6 +1,7 @@
 import { newMemEmptyTrie, buildPoseidonReference, buildBabyjub } from "circomlibjs";
 import { utils as ffutils} from 'ffjavascript';
 import { ethers } from "ethers";
+import axios from 'axios';
 
 async function buildCensus(nLevels) {
 	const poseidon = await buildPoseidonReference();
@@ -76,15 +77,28 @@ class Census {
 		return JSON.stringify(compPubKs);
 	}
 
-	async import(jsonData) {
-		let compPubKs = JSON.parse(jsonData);
+
+	static async buildFromPubKs(pubKeys, nLevels) {
 		let pubKs = [];
-		for (let i=0; i<compPubKs.length; i++) {
-			let compPubK = ffutils.leInt2Buff(BigInt(compPubKs[i]));
-			let pubK = this.babyjub.unpackPoint(compPubK);
+		let census = await buildCensus(nLevels);
+		for (let i=0; i<pubKeys.length; i++) {
+			let compPubK = ffutils.leInt2Buff(BigInt(pubKeys[i]));
+			let pubK = census.babyjub.unpackPoint(compPubK);
 			pubKs.push(pubK);
 		}
-		await this.addKeys(pubKs);
+		await census.addKeys(pubKs);
+		return census;
+	}
+
+	static async rebuildFromJson(jsonData, nLevels = 16) {
+		let compPubKs = JSON.parse(jsonData);
+		return await Census.buildFromPubKs(compPubKs, nLevels);
+	}
+
+	static async rebuildFromIPFS(ipfsGateway, ipfsHash, nLevels = 16) {
+		let res = await axios.get(`${ipfsGateway}/${ipfsHash}`);
+		let compPubKs = await res.data;
+		return await Census.buildFromPubKs(compPubKs, nLevels);
 	}
 }
 
