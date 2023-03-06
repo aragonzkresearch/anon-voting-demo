@@ -5,6 +5,8 @@ node_modules
 # Hardhat files
 cache
 artifacts
+typechain-types
 
 # Files with sensitive data
 .env
+
