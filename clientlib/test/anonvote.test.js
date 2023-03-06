@@ -125,8 +125,8 @@ describe("ClientLib", function () {
 
 			const vote = "1";
 			const circuit = await loadCircuit("/../../other/circuit16");
-			assert(circuit.zkey != undefined);
-			assert(circuit.witnessCalcWasm != undefined);
+			assert(circuit.zkey !== undefined);
+			assert(circuit.witnessCalcWasm !== undefined);
 
 			const proofAndPI = await av.genZKProof(snarkjs, circuit.zkey,
 				circuit.witnessCalcWasm, processID,
@@ -259,6 +259,7 @@ describe("ClientLib", function () {
 
 			// Set the parameters
 			const topic = "test";
+			const censusIPFSHash = "QmZ";
 			const censusRoot = 1; // This is the root of the census tree, which is a hash of the public keys. Here we use 1 as a placeholder
 			const startBlock = 10;
 			const endBlock = 100;
@@ -269,7 +270,7 @@ describe("ClientLib", function () {
 			const signer = (await ethers.getSigners())[0];
 
 			// Create the process
-			const processID = await av.newProcess(topic, censusRoot, startBlock, endBlock, minTurnout, minMajority, signer);
+			const processID = await av.newProcess(topic, censusIPFSHash, censusRoot, startBlock, endBlock, minTurnout, minMajority, signer);
 
 			return {av, processID, signer, web3gw, nLevels, topic, censusRoot, startBlock, endBlock, minTurnout, minMajority };
 		}
@@ -281,6 +282,7 @@ describe("ClientLib", function () {
 			// Set the parameters
 			const topic = "test";
 			const censusRoot = 1; // This is the root of the census tree, which is a hash of the public keys. Here we use 1 as a placeholder
+			const censusIPFSHash = "QmZ";
 			const startBlock = 10;
 			const endBlock = 100;
 			const minTurnout = 1; // 1%
@@ -290,7 +292,7 @@ describe("ClientLib", function () {
 			const signer = (await ethers.getSigners())[0];
 
 			// Create the process
-			const processID = await av.newProcess(topic, censusRoot, startBlock, endBlock, minTurnout, minMajority, signer);
+			const processID = await av.newProcess(topic, censusIPFSHash, censusRoot, startBlock, endBlock, minTurnout, minMajority, signer);
 			expect(processID).to.equal(1);
 
 			// // Get the process that was just created
@@ -301,6 +303,7 @@ describe("ClientLib", function () {
 
 			// Check that the process has the correct parameters
 			expect(process.topic).to.equal(topic);
+			expect(process.censusIPFSHash).to.equal(censusIPFSHash);
 			expect(process.censusRoot).to.equal(censusRoot);
 			expect(process.startBlock).to.equal(startBlock);
 			expect(process.endBlock).to.equal(endBlock);
@@ -314,6 +317,7 @@ describe("ClientLib", function () {
 
 			// Set the parameters for the first process
 			const topicOne = "test 1";
+			const censusIPFSHashOne = "QmZa";
 			const censusRootOne = 1; // This is the root of the census tree, which is a hash of the public keys. Here we use 1 as a placeholder
 			const startBlockOne = 10;
 			const endBlockOne = 100;
@@ -324,11 +328,12 @@ describe("ClientLib", function () {
 			const signer = (await ethers.getSigners())[0];
 
 			// Create the process
-			const processID1 = await av.newProcess(topicOne, censusRootOne, startBlockOne, endBlockOne, minTurnoutOne, minMajorityOne, signer);
+			const processID1 = await av.newProcess(topicOne, censusIPFSHashOne, censusRootOne, startBlockOne, endBlockOne, minTurnoutOne, minMajorityOne, signer);
 			expect(processID1).to.equal(1);
 
 			// Set the parameters for the second process
 			const topicTwo = "test 2";
+			const censusIPFSHashTwo = "QmZb";
 			const censusRootTwo = 2; // This is the root of the census tree, which is a hash of the public keys. Here we use 2 as a placeholder
 			const startBlockTwo = 100;
 			const endBlockTwo = 200;
@@ -337,7 +342,7 @@ describe("ClientLib", function () {
 
 
 			// Create a second process
-			const processID2 = await av.newProcess(topicTwo, censusRootTwo, startBlockTwo, endBlockTwo, minTurnoutTwo, minMajorityTwo, signer);
+			const processID2 = await av.newProcess(topicTwo, censusIPFSHashTwo, censusRootTwo, startBlockTwo, endBlockTwo, minTurnoutTwo, minMajorityTwo, signer);
 			expect(processID2).to.equal(2);
 
 
@@ -347,6 +352,7 @@ describe("ClientLib", function () {
 
 			// Check that the 1st process is the first process
 			expect(processes[0].topic).to.equal(topicOne);
+			expect(processes[0].censusIPFSHash).to.equal(censusIPFSHashOne);
 			expect(processes[0].censusRoot).to.equal(censusRootOne);
 			expect(processes[0].startBlock).to.equal(startBlockOne);
 			expect(processes[0].endBlock).to.equal(endBlockOne);
@@ -355,6 +361,7 @@ describe("ClientLib", function () {
 
 			// Check that the 2nd process is the second process
 			expect(processes[1].topic).to.equal(topicTwo);
+			expect(processes[1].censusIPFSHash).to.equal(censusIPFSHashTwo);
 			expect(processes[1].censusRoot).to.equal(censusRootTwo);
 			expect(processes[1].startBlock).to.equal(startBlockTwo);
 			expect(processes[1].endBlock).to.equal(endBlockTwo);
@@ -416,6 +423,7 @@ describe("ClientLib", function () {
 
 			// Set the new process parameters
 			const topic = "test with zk";
+			const censusIPFSHash = "QmZa";
 			const censusRoot = census.root();
 			const startBlock = 10;
 			const endBlock = 100;
@@ -426,7 +434,7 @@ describe("ClientLib", function () {
 			const signer = (await ethers.getSigners())[0];
 
 			// Create the process
-			const processID = await av.newProcess(topic, censusRoot, startBlock, endBlock, minTurnout, minMajority, signer);
+			const processID = await av.newProcess(topic, censusIPFSHash, censusRoot, startBlock, endBlock, minTurnout, minMajority, signer);
 			expect(processID).to.equal(1);
 
 			// Skip to the start of the process
@@ -434,8 +442,7 @@ describe("ClientLib", function () {
 			await ethers.provider.send("hardhat_mine", ['0x'+skipBlocks.toString(16)]);
 
 			// // Get the process that was just created
-			const process = await av.getProcess(processID);
-
+			await av.getProcess(processID);
 			const circuit = await loadCircuit("/../../other/circuit16");
 
 			const voteBool = true;
