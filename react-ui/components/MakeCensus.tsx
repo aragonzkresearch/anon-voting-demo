@@ -1,10 +1,9 @@
+import { N_LEVELS } from "../hooks/settings";
 import { Census, buildCensus } from "../hooks/census";
 
 export default function MakeCensus() {
 
 	const createCensus = async () => {
-		const N_LEVELS = 16;
-
 		try {
 			let census = await buildCensus(N_LEVELS);
 	
@@ -13,9 +12,11 @@ export default function MakeCensus() {
 
 			await census.addCompKeys(keyArray);
 
-			let proof = await census.generateProof(0);
+			let root = await census.root();
+			//let proof = await census.generateProof(0);
 	
-			document.getElementById('census-root').value = proof.censusRoot;
+			//document.getElementById('census-root').value = proof.censusRoot;
+			document.getElementById('census-root').value = root;
 
 			let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(keyArray));
 			let dlAnchorElem = document.getElementById('downloadAnchorElem');
@@ -66,7 +67,7 @@ export default function MakeCensus() {
             		</p>
                   </div>
                   <div>
-                    <label htmlFor="keylist" className="block text-sm font-medium text-gray-700">
+                    <label htmlFor="keylist" className="block text-m font-medium text-gray-800 py-1">
                       List of Keys
                     </label>
                     <div className="mt-1">
@@ -78,14 +79,15 @@ export default function MakeCensus() {
                         defaultValue={''}
                       />
                     </div>
-                    <p className="mt-2 text-sm text-gray-500">
+                    <p className="mt-2 text-sm text-gray-600 px-4">
+						<span className="text-l text-red-600">⚠️</span>&nbsp;
                       One key per line, please. Otherwise this won&apos;t work
                     </p>
                   </div>
 
                   <div className="grid grid-cols-3 gap-6">
                     <div className="col-span-6">
-                      <label htmlFor="census-root" className="block text-sm font-medium text-gray-700">
+                      <label htmlFor="census-root" className="block text-m font-medium text-gray-800 py-1">
                         Census Merkel Root
                       </label>
                       <div className="mt-1 flex rounded-md shadow-sm">
@@ -97,6 +99,7 @@ export default function MakeCensus() {
                         <input
                           type="text"
                           name="census-root"
+                          disabled={ true }
                           id="census-root"
                           className="block w-full flex-1 rounded-none rounded-r-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                         />

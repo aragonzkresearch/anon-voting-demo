@@ -1,4 +1,6 @@
+import { VOTING_ADDR, N_LEVELS } from "../hooks/settings";
 import React, { useState } from 'react';
+import { useEffect, Component } from 'react';
 import { AnonVote, buildAnonVote } from "../hooks/anonvote";
 import { ethers } from "ethers";
 
@@ -7,17 +9,30 @@ export default function MakeProcess() {
 	const [showProcessId, setShowProcessId] = useState(false);
 	const [newProcessId, setNewProcessId] = useState("");
 
-	const createVoteProcess = async () => {
-		const VOTING_ADDR = "0xcf66FfaFe927202a71F2C0918e83FfBF19fE15e8";
-		const N_LEVELS = 16;
+	useEffect(() => {
+		getBlockNums();
+	}, []);
 
+	const getBlockNums = async () => {
+		if (window.ethereum) {
+			try {
+				const web3gw = new ethers.providers.Web3Provider(window.ethereum)
+				const curBlock = await web3gw.getBlockNumber();
+				const curBlockPlusOneHour = curBlock + 300;
+
+				document.getElementById('start-blocknum').value = curBlock + 60;
+				document.getElementById('end-blocknum').value = curBlockPlusOneHour;
+			} catch (error) {
+				console.log({ error });
+			}
+		}
+	}
+
+	const createVoteProcess = async () => {
 		if (window.ethereum) {
 			setShowSpinner(true);
 
 			try {
-				//const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
-				//const signer = accounts[0]
-
 				// POTENTIAL PROBLEM, only during testing, I think.
 				// ISSUE: https://hardhat.org/hardhat-network/docs/metamask-issue
 				const currentChain = await ethereum.request({ method: 'eth_chainId' });
@@ -38,7 +53,6 @@ export default function MakeProcess() {
 
 				// Create the proccess
 				const processID = await av.newProcess(topic, censusRoot, startBlock, endBlock, minTurnout, minMajority, signer);
-
 				setNewProcessId(processID);
 
 				if (processID !== "" && processID !== null) {
@@ -80,7 +94,7 @@ export default function MakeProcess() {
 				</div>
                   <div className="grid grid-cols-3 gap-6">
                     <div className="col-span-6">
-                      <label htmlFor="topic" className="block text-sm font-medium text-gray-700">
+                      <label htmlFor="topic" className="block text-m font-medium text-gray-800 py-1">
                         Topic
                       </label>
                       <input
@@ -93,7 +107,7 @@ export default function MakeProcess() {
                   </div>
                   <div className="grid grid-cols-3 gap-6">
                     <div className="col-span-6">
-                      <label htmlFor="census-merkel-root" className="block text-sm font-medium text-gray-700">
+                      <label htmlFor="census-merkel-root" className="block text-m font-medium text-gray-800 py-1">
                         Census Merkel Root
                       </label>
                       <input
@@ -106,7 +120,7 @@ export default function MakeProcess() {
                   </div>
                   <div className="grid grid-cols-6 gap-6">
                     <div className="col-span-6 sm:col-span-3">
-                      <label htmlFor="start-blocknum" className="block text-sm font-medium text-gray-700">
+                      <label htmlFor="start-blocknum" className="block text-m font-medium text-gray-800 py-1">
                         Start Block Number
                       </label>
                       <input
@@ -115,9 +129,10 @@ export default function MakeProcess() {
                         id="start-blocknum"
                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                       />
+           			<p className="mt-4 text-xs text-gray-600 px-4">⚠️&nbsp;<i>5 minutes from now</i></p>
                     </div>
                     <div className="col-span-6 sm:col-span-3">
-                      <label htmlFor="end-blocknum" className="block text-sm font-medium text-gray-700">
+                      <label htmlFor="end-blocknum" className="block text-m font-medium text-gray-800 py-1">
                         Ending Block Number
                       </label>
                       <input
@@ -126,11 +141,12 @@ export default function MakeProcess() {
                         id="end-blocknum"
                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                       />
+           			<p className="mt-4 text-xs text-gray-600 px-4">⚠️&nbsp;<i>About 1 hour from now</i></p>
                     </div>
                   </div>
                   <div className="grid grid-cols-6 gap-6">
                     <div className="col-span-6 sm:col-span-3">
-                      <label htmlFor="min-turnout" className="block text-sm font-medium text-gray-700">
+                      <label htmlFor="min-turnout" className="block text-m font-medium text-gray-800 py-1">
                         Minimum Turnout (quorum)
                       </label>
                       <input
@@ -141,7 +157,7 @@ export default function MakeProcess() {
                       />
                     </div>
                     <div className="col-span-6 sm:col-span-3">
-                      <label htmlFor="min-majority" className="block text-sm font-medium text-gray-700">
+                      <label htmlFor="min-majority" className="block text-m font-medium text-gray-800 py-1">
                         Minimum Majority
                       </label>
                       <input
@@ -155,7 +171,7 @@ export default function MakeProcess() {
       			  {showProcessId && (
                   <div className="grid grid-cols-3 gap-6">
                     <div className="col-span-6">
-                      <label htmlFor="process-id" className="block text-sm font-medium text-gray-700">
+                      <label htmlFor="process-id" className="block text-m font-medium text-gray-800 py-1">
                         Process ID
                       </label>
                       <input
