@@ -52,7 +52,6 @@ class AnonVote {
 		// Store the private and public key
 		this.privateKey = privateKey;
 		this.publicKey = publicKey;
-		//this.publicKey = [publicKey[0].toString(), publicKey[1].toString()];
 
 
 		// Compute the compressed public key
