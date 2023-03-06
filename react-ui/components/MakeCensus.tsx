@@ -1,5 +1,6 @@
 import { N_LEVELS } from "../hooks/settings";
-import { Census, buildCensus } from "../hooks/census";
+// @ts-ignore
+import { Census, buildCensus } from "clientlib";
 
 export default function MakeCensus() {
 

@@ -1,7 +1,8 @@
 import { VOTING_ADDR, N_LEVELS } from "../hooks/settings";
 import React, { useState } from 'react';
 import { useEffect, Component } from 'react';
-import { AnonVote, buildAnonVote } from "../hooks/anonvote";
+// @ts-ignore
+import { AnonVote, buildAnonVote } from 'clientlib';
 import { ethers } from "ethers";
 
 export default function MakeProcess() {
@@ -35,7 +36,7 @@ export default function MakeProcess() {
 			try {
 				// POTENTIAL PROBLEM, only during testing, I think.
 				// ISSUE: https://hardhat.org/hardhat-network/docs/metamask-issue
-				const currentChain = await ethereum.request({ method: 'eth_chainId' });
+				const currentChain = await window.ethereum.request({ method: 'eth_chainId' });
 				const web3gw = new ethers.providers.Web3Provider(window.ethereum)
 				const signer = await web3gw.getSigner();
 
@@ -46,13 +47,16 @@ export default function MakeProcess() {
 				// Get data from user
 				const topic = document.getElementById('topic').value;
 				const censusRoot = document.getElementById('census-merkel-root').value;
+                const censusIpfs = document.getElementById('census-ipfs-hash').value.toString();
 				const startBlock = document.getElementById('start-blocknum').value;
 				const endBlock = document.getElementById('end-blocknum').value;
 				const minTurnout = document.getElementById('min-turnout').value;
 				const minMajority = document.getElementById('min-majority').value;
 
+                console.log(censusIpfs + " " + censusRoot)
+
 				// Create the proccess
-				const processID = await av.newProcess(topic, censusRoot, startBlock, endBlock, minTurnout, minMajority, signer);
+				const processID = await av.newProcess(topic, censusIpfs, censusRoot, startBlock, endBlock, minTurnout, minMajority, signer);
 				setNewProcessId(processID);
 
 				if (processID !== "" && processID !== null) {
@@ -118,6 +122,19 @@ export default function MakeProcess() {
                       />
                     </div>
                   </div>
+                    <div className="grid grid-cols-3 gap-6">
+                        <div className="col-span-6">
+                            <label htmlFor="census-ipfs-hash" className="block text-m font-medium text-gray-700">
+                                Census IPFS Hash
+                            </label>
+                            <input
+                                type="text"
+                                name="census-ipfs-hash"
+                                id="census-ipfs-hash"
+                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                            />
+                        </div>
+                    </div>
                   <div className="grid grid-cols-6 gap-6">
                     <div className="col-span-6 sm:col-span-3">
                       <label htmlFor="start-blocknum" className="block text-m font-medium text-gray-800 py-1">
@@ -147,7 +164,7 @@ export default function MakeProcess() {
                   <div className="grid grid-cols-6 gap-6">
                     <div className="col-span-6 sm:col-span-3">
                       <label htmlFor="min-turnout" className="block text-m font-medium text-gray-800 py-1">
-                        Minimum Turnout (quorum)
+                        Minimum Turnout (quorum) [%]
                       </label>
                       <input
                         type="text"
@@ -158,7 +175,7 @@ export default function MakeProcess() {
                     </div>
                     <div className="col-span-6 sm:col-span-3">
                       <label htmlFor="min-majority" className="block text-m font-medium text-gray-800 py-1">
-                        Minimum Majority
+                        Minimum Majority [%]
                       </label>
                       <input
                         type="text"

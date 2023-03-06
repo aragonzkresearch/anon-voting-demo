@@ -1,5 +1,5 @@
 import { VOTING_ADDR, SIGNING_TEXT, N_LEVELS } from "../hooks/settings";
-import { AnonVote, buildAnonVote } from "../hooks/anonvote";
+import { AnonVote, buildAnonVote } from "clientlib";
 import { ethers } from "ethers";
 import { Fragment, useRef, useState } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
@@ -11,7 +11,7 @@ export default function FinalizePopup({open, close, id}) {
 
 	const voteFinalize = async () => {
 		try {
-			const currentChain = await ethereum.request({ method: 'eth_chainId' });
+			const currentChain = await window.ethereum.request({ method: 'eth_chainId' });
 
 			const web3gw = new ethers.providers.Web3Provider(window.ethereum)
 			const signer = await web3gw.getSigner();
