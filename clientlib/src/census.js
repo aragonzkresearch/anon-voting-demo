@@ -1,5 +1,6 @@
 import { newMemEmptyTrie, buildPoseidonReference, buildBabyjub } from "circomlibjs";
 import { utils as ffutils} from 'ffjavascript';
+import { ethers } from "ethers";
 
 async function buildCensus(nLevels) {
 	const poseidon = await buildPoseidonReference();
@@ -17,6 +18,20 @@ class Census {
 		this.tree = tree;
 		this.publicKeys = [];
 		this.lastIndex = 0
+	}
+
+	async addCompKeys(publicCompKeys) {
+		for (let i=0; i<publicCompKeys.length; i++) {
+			const thisKey = this.babyjub.unpackPoint(
+								ffutils.leInt2Buff(
+									BigInt(publicCompKeys[i])
+								)
+							);
+			this.publicKeys.push(thisKey);
+			const leafValue = this.poseidon([thisKey[0], thisKey[1], "1"]);
+			await this.tree.insert(this.lastIndex + i, leafValue);
+		}
+		this.lastIndex += publicCompKeys.length;
 	}
 
 	async addKeys(publicKeys) {
@@ -56,7 +71,7 @@ class Census {
 		let compPubKs = [];
 		for (let i=0; i<this.publicKeys.length; i++) {
 			let compPubK = ffutils.leBuff2int(this.babyjub.packPoint(this.publicKeys[i]));
-			compPubKs.push(compPubK.toString());
+			compPubKs.push(ethers.utils.hexZeroPad(`0x${compPubK.toString(16)}`, 32));
 		}
 		return JSON.stringify(compPubKs);
 	}
@@ -72,6 +87,5 @@ class Census {
 		await this.addKeys(pubKs);
 	}
 }
-
 
 export { Census, buildCensus };
