@@ -29,6 +29,11 @@ export default function StartScreen() {
               This one works today!
             </p>
             <div className="mt-10 flex items-center justify-center gap-x-6 lg:justify-end">
+				<Link href="/instructions">
+                <div style={{cursor: 'pointer'}} className="rounded-md bg-white px-3.5 py-1.5 text-black border border-white hover:text-white hover:bg-transparent font-semibold leading-7 text-gray-900 shadow-sm hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
+                	Some instructions
+				</div>
+				</Link>
 				<Link href="/keygen">
                 <div style={{cursor: 'pointer'}} className="rounded-md bg-transparent px-3.5 py-1.5 text-white border border-white hover:text-black hover:bg-white font-semibold leading-7 text-gray-900 shadow-sm hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
                 Let&apos;s get started <span aria-hidden="true">→</span>

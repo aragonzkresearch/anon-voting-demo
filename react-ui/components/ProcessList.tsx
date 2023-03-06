@@ -1,3 +1,4 @@
+import { VOTING_ADDR, N_LEVELS } from "../hooks/settings";
 import { AnonVote, buildAnonVote } from "../hooks/anonvote";
 import { BigNumber, ethers, utils } from "ethers";
 import React, { useState, useEffect } from 'react';
@@ -17,37 +18,36 @@ import React, { useState, useEffect } from 'react';
 */
 
 export default function ProcessList({clickAction, actionIcon}) {
+  const [needData, setNeedData] = useState(true);
   const [processes, setProcesses] = useState([]);
 
   // Similar to componentDidMount and componentDidUpdate:
   useEffect(() => {
-	let needData = true;
+	setNeedData(true); 
 
 	const fetchData = async () => {
 		// POTENTIAL PROBLEM, only during testing, I think.
 		// ISSUE: https://hardhat.org/hardhat-network/docs/metamask-issue
 		const currentChain = await ethereum.request({ method: 'eth_chainId' });
-		const nLevels=16;
-
 		const web3gw = new ethers.providers.Web3Provider(window.ethereum)
-		const anonVotingAddress = "0xcf66FfaFe927202a71F2C0918e83FfBF19fE15e8";
 
 		// Get stuff from the chain
-		const av = await buildAnonVote(currentChain, nLevels);
-		await av.connect(web3gw, anonVotingAddress);
+		const av = await buildAnonVote(currentChain, N_LEVELS);
+		await av.connect(web3gw, VOTING_ADDR);
 
 		const processList = await av.getProcesses();
 
 		if (needData && processList.length > 0 ) {
 			setProcesses(processList);
 		}
+		setNeedData(false);
 	}
 
 	// call the function
 	fetchData().catch(console.error);
 
 	// cancel any future `setData`
-	return () => needData = false;
+	return () => setNeedData(false);
   }, []);
 
   return (
@@ -69,18 +69,6 @@ export default function ProcessList({clickAction, actionIcon}) {
 					Process
                   </th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" >
-					Creator
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" >
-					StartBlock
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" >
-					EndBlock
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" >
-					CensusRoot
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" >
 					Status
                   </th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" >
@@ -89,10 +77,22 @@ export default function ProcessList({clickAction, actionIcon}) {
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" >
 					Votes Against
                   </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" >
+					StartBlock
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" >
+					EndBlock
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" >
+					Creator
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" >
+					CensusRoot
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {(processes.length < 1) && (
+                {(needData) && (
                   <tr>
 					<td></td>
                     <td colSpan={8} className="px-6 py-4 whitespace-nowrap align-middle text-sm font-medium">
@@ -100,10 +100,17 @@ export default function ProcessList({clickAction, actionIcon}) {
 					</td>
                   </tr>
 				)}
+                {(!needData && processes.length === 0) && (
+                  <tr>
+					<td></td>
+                    <td colSpan={8} className="px-6 py-4 whitespace-nowrap align-middle text-sm font-medium">
+						No Data Found...
+					</td>
+                  </tr>
+				)}
                 {(processes.length > 0) && processes.map(process => (
-                  <tr key={process.processID}>
+                  <tr key={process.processID} onClick={ () => { !process.closed && clickAction(process.processID, process.censusRoot.toString());}} style={{cursor: 'pointer'}} className="hover:hover:bg-indigo-100">
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <a href="#" onClick={ () => { !process.closed && clickAction(process.processID, process.censusRoot.toString());}} className="text-indigo-600 hover:text-indigo-900">
       			  {actionIcon === "vote" && (
 <svg xmlns="http://www.w3.org/2000/svg" fill="antiquewhite" viewBox="0 0 20 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
   <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 15h2.25m8.024-9.75c.011.05.028.1.052.148.591 1.2.924 2.55.924 3.977a8.96 8.96 0 01-.999 4.125m.023-8.25c-.076-.365.183-.75.575-.75h.908c.889 0 1.713.518 1.972 1.368.339 1.11.521 2.287.521 3.507 0 1.553-.295 3.036-.831 4.398C20.613 14.547 19.833 15 19 15h-1.053c-.472 0-.745-.556-.5-.96a8.95 8.95 0 00.303-.54m.023-8.25H16.48a4.5 4.5 0 01-1.423-.23l-3.114-1.04a4.5 4.5 0 00-1.423-.23H6.504c-.618 0-1.217.247-1.605.729A11.95 11.95 0 002.25 12c0 .434.023.863.068 1.285C2.427 14.306 3.346 15 4.372 15h3.126c.618 0 .991.724.725 1.282A7.471 7.471 0 007.5 19.5a2.25 2.25 0 002.25 2.25.75.75 0 00.75-.75v-.633c0-.573.11-1.14.322-1.672.304-.76.93-1.33 1.653-1.715a9.04 9.04 0 002.86-2.4c.498-.634 1.226-1.08 2.032-1.08h.384" />
@@ -119,23 +126,10 @@ export default function ProcessList({clickAction, actionIcon}) {
   <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
 </svg>
 )}
-                      </a>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">{process.topic}</div>
-                      <div className="text-sm font-small text-gray-500">({process.processID})</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-						{process.creator}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-						{process.startBlock.toString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-						{process.endBlock.toString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-						{process.censusRoot.toString()}
+                      <div className="text-xs font-small text-gray-500">ID: {process.processID}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={process.closed ? "px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800" : 
@@ -148,6 +142,18 @@ export default function ProcessList({clickAction, actionIcon}) {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
 						{process.noVotes.toString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+						{process.startBlock.toString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+						{process.endBlock.toString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+						{process.creator}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+						{process.censusRoot.toString()}
                     </td>
                   </tr>
                 ))}
