@@ -13,6 +13,7 @@ const snarkjs = require("snarkjs");
 
 const {buildAnonVote} = require("../src/anonvote.js");
 const {buildCensus} = require("../src/census.js");
+const {AnonVote} = require("../src/anonvote");
 const fromHexString = (hexString) =>
 	new Uint8Array(hexString.match(/.{1,2}/g).map((byte) => parseInt(byte, 16)));
 
@@ -163,6 +164,16 @@ describe("ClientLib", function () {
 			// Check that the compressed public key is a 32 bytes long hex string (0x prefix + 64 hex chars)
 			expect(compressedPublicKey).to.match(/^0x[0-9a-fA-F]{64}$/);
 
+		});
+
+		it("Should download the circuit parameters", async () => {
+			const ipfsGateway = "https://anon-vote.infura-ipfs.io/ipfs/";
+			const circuitHash = "QmPizFRo3ngWv7x2bckoPhxEXJFgcLzus5nGMzYUZUBXhd";
+			const av = await buildAnonVote(chainID, nLevels);
+			let {zkey, wasmWitness} = await av.downloadCircuitParameters(ipfsGateway, circuitHash);
+
+			expect(zkey).to.not.be.null;
+			expect(wasmWitness).to.not.be.null;
 		});
 	});
 

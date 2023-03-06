@@ -5,6 +5,8 @@ const { buildPoseidonReference, buildEddsa, buildBabyjub } = require(
 
 const { utils: ffutils } = require('ffjavascript');
 
+const axios = require('axios');
+
 const {ethers} = require("ethers");
 
 const WitnessCalculatorBuilder = require("circom_runtime").WitnessCalculatorBuilder;
@@ -43,6 +45,18 @@ class AnonVote {
 		const abi = [{"inputs":[{"internalType":"address","name":"_verifierContractAddr","type":"address"}],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint256","name":"processID","type":"uint256"},{"indexed":false,"internalType":"address","name":"creator","type":"address"},{"indexed":false,"internalType":"string","name":"topic","type":"string"},{"indexed":false,"internalType":"uint256","name":"startBlockNum","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"endBlockNum","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"censusRoot","type":"uint256"},{"indexed":false,"internalType":"uint8","name":"minTurnout","type":"uint8"},{"indexed":false,"internalType":"uint8","name":"minMajority","type":"uint8"}],"name":"NewProcess","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint256","name":"processID","type":"uint256"},{"indexed":false,"internalType":"bool","name":"passed","type":"bool"}],"name":"ProcessClosed","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint256","name":"processID","type":"uint256"},{"indexed":false,"internalType":"bool","name":"vote","type":"bool"}],"name":"Vote","type":"event"},{"inputs":[{"internalType":"uint256","name":"_processID","type":"uint256"},{"internalType":"uint256","name":"_nullifier","type":"uint256"}],"name":"checkIfVoted","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_processID","type":"uint256"}],"name":"closeProcess","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_processID","type":"uint256"}],"name":"isProcessPassed","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"lastProcessID","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"string","name":"_topic","type":"string"},{"internalType":"uint256","name":"_censusRoot","type":"uint256"},{"internalType":"uint256","name":"_startBlockNum","type":"uint256"},{"internalType":"uint256","name":"_endBlockNum","type":"uint256"},{"internalType":"uint8","name":"_minTurnout","type":"uint8"},{"internalType":"uint8","name":"_minMajority","type":"uint8"}],"name":"newProcess","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"","type":"uint256"}],"name":"processes","outputs":[{"internalType":"address","name":"creator","type":"address"},{"internalType":"string","name":"topic","type":"string"},{"internalType":"uint256","name":"startBlockNum","type":"uint256"},{"internalType":"uint256","name":"endBlockNum","type":"uint256"},{"internalType":"uint256","name":"censusRoot","type":"uint256"},{"internalType":"uint8","name":"minTurnout","type":"uint8"},{"internalType":"uint8","name":"minMajority","type":"uint8"},{"internalType":"uint256","name":"yesVotes","type":"uint256"},{"internalType":"uint256","name":"noVotes","type":"uint256"},{"internalType":"bool","name":"closed","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_processID","type":"uint256"},{"internalType":"bool","name":"_vote","type":"bool"},{"internalType":"uint256","name":"_nullifier","type":"uint256"},{"internalType":"uint256[2]","name":"_a","type":"uint256[2]"},{"internalType":"uint256[2][2]","name":"_b","type":"uint256[2][2]"},{"internalType":"uint256[2]","name":"_c","type":"uint256[2]"}],"name":"vote","outputs":[],"stateMutability":"nonpayable","type":"function"}];
 		// Load the contract
 		this.anonVoting = new ethers.Contract(anonVotingAddress, abi, this.web3gw);
+	}
+
+	// Downloads the ZKey and Wasm Witness from the IPFS gateway
+	// Uses the circuit hash of IPFS storage location to download the correct files
+	async downloadCircuitParameters(ipfsGateway, ipfsHash) {
+		// Download the ZKey
+		const zkey = await axios.get(ipfsGateway + "/" + ipfsHash + "/other/circuit16.zkey");
+
+		// Download the Wasm Witness
+		const wasmWitness = await axios.get(ipfsGateway + ipfsHash + "/other/circuit16.wasm");
+
+		return {zkey: zkey.data, wasmWitness: wasmWitness.data}
 	}
 
 	// Generate a BabyJubJub keypair
