@@ -3,11 +3,17 @@ import { AnonVote, buildAnonVote } from "../hooks/anonvote";
 import { ethers } from "ethers";
 
 export default function MakeProcess() {
+	const [showSpinner, setShowSpinner] = useState(false);
 	const [showProcessId, setShowProcessId] = useState(false);
 	const [newProcessId, setNewProcessId] = useState("");
 
 	const createVoteProcess = async () => {
+		const VOTING_ADDR = "0xcf66FfaFe927202a71F2C0918e83FfBF19fE15e8";
+		const N_LEVELS = 16;
+
 		if (window.ethereum) {
+			setShowSpinner(true);
+
 			try {
 				//const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
 				//const signer = accounts[0]
@@ -15,17 +21,12 @@ export default function MakeProcess() {
 				// POTENTIAL PROBLEM, only during testing, I think.
 				// ISSUE: https://hardhat.org/hardhat-network/docs/metamask-issue
 				const currentChain = await ethereum.request({ method: 'eth_chainId' });
-				const nLevels=16;
-
 				const web3gw = new ethers.providers.Web3Provider(window.ethereum)
-				const anonVotingAddress = "0xcf66FfaFe927202a71F2C0918e83FfBF19fE15e8";
-
-				//const buyer = await (ethers.getSigner())[0];
 				const signer = await web3gw.getSigner();
 
 				// Get stuff from the chain
-				const av = await buildAnonVote(currentChain, nLevels);
-				await av.connect(web3gw, anonVotingAddress);
+				const av = await buildAnonVote(currentChain, N_LEVELS);
+				await av.connect(web3gw, VOTING_ADDR);
 
 				// Get data from user
 				const topic = document.getElementById('topic').value;
@@ -42,10 +43,12 @@ export default function MakeProcess() {
 
 				if (processID !== "" && processID !== null) {
 					setShowProcessId(true);
+					setShowSpinner(false);
 				}
 
 			} catch (error) {
-				console.log({ error })
+				console.log({ error });
+				setShowSpinner(false);
 			}
 		}
 	};
@@ -173,7 +176,11 @@ export default function MakeProcess() {
                     onClick={ createVoteProcess }
                     className="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                   >
-                    Create Voting Process
+				{ showSpinner ? (
+<div class="inline-block h-6 w-6 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] text-primary motion-reduce:animate-[spin_1.5s_linear_infinite]" role="status"></div>
+				) : (
+                    'Create Voting Process'
+				)}
                   </button>
                 </div>
               </div>

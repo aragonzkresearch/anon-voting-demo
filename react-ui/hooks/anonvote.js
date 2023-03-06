@@ -1,8 +1,7 @@
 import { buildPoseidonReference, buildEddsa, buildBabyjub } from "circomlibjs";
-import { utils } from 'ffjavascript';
-import { ffutils } from 'ffjavascript';
-import { ethers } from "ethers";
-import { WitnessCalculatorBuilder } from "circom_runtime";
+import { utils as ffutils} from 'ffjavascript';
+import {ethers} from "ethers";
+import {WitnessCalculatorBuilder} from "circom_runtime";
 
 async function buildAnonVote(chainID, nLevels) {
 	const poseidon = await buildPoseidonReference();
@@ -48,15 +47,16 @@ class AnonVote {
 		const privateKey = ethers.utils.keccak256(signature);
 
 		// Compute the public key by hashing the private key to the BabyJubJub curve
-		const publicKey = this.eddsa.prv2pub(privateKey)
+		const publicKey = this.eddsa.prv2pub(privateKey);
 
 		// Store the private and public key
-		this.privateKey = privateKey
-		this.publicKey = [publicKey[0].toString(), publicKey[1].toString()]
+		this.privateKey = privateKey;
+		this.publicKey = publicKey;
+		//this.publicKey = [publicKey[0].toString(), publicKey[1].toString()];
 
 
 		// Compute the compressed public key
-		const compressedPublicKey = utils.leBuff2int(this.babyjub.packPoint(publicKey))
+		const compressedPublicKey = ffutils.leBuff2int(this.babyjub.packPoint(publicKey));
 		this.compressedPublicKey = ethers.utils.hexZeroPad(`0x${compressedPublicKey.toString(16)}`, 32);
 
 		return {privateKey: this.privateKey, publicKey: this.publicKey, compressedPublicKey: this.compressedPublicKey };
@@ -207,7 +207,7 @@ class AnonVote {
 	getMerkleProof() {}
 	getProvingKey() {}
 
-	async castVote(snarkjs, signer, zkey, witnessCalcWasm, processID, censusRoot, merkleproof, voteBool) {
+	async castVote(snarkjs, signer, zkey, witnessCalcWasm, processID, censusRoot, merkleproof, voteBool, gasLimit) {
 		if (!this.web3gw) {
 			throw new Error("web3gw not defined. Use connect() first");
 		}
@@ -225,7 +225,7 @@ class AnonVote {
 		// call contract vote method sending the proof
 		await anonVotingWithSigner.vote(processID, voteBool,
 			proofAndPI.publicInputs.nullifier, proofAndPI.proof[0],
-			proofAndPI.proof[1], proofAndPI.proof[2]);
+			proofAndPI.proof[1], proofAndPI.proof[2], {gasLimit: gasLimit});
 	}
 
 	// Method to check if a voter has already voted in a process

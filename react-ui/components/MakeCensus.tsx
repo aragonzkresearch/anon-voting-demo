@@ -3,23 +3,24 @@ import { Census, buildCensus } from "../hooks/census";
 export default function MakeCensus() {
 
 	const createCensus = async () => {
-		const nLevels = 16;
+		const N_LEVELS = 16;
+
 		try {
-			let census = await buildCensus(nLevels);
+			let census = await buildCensus(N_LEVELS);
 	
 			let keyList = document.getElementById('keylist').value;
 			let keyArray = keyList.split('\n');
 
-			await census.addKeys(keyArray);
+			await census.addCompKeys(keyArray);
 
 			let proof = await census.generateProof(0);
 	
 			document.getElementById('census-root').value = proof.censusRoot;
 
-			let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(proof));
+			let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(keyArray));
 			let dlAnchorElem = document.getElementById('downloadAnchorElem');
 			dlAnchorElem.setAttribute("href", dataStr);
-			dlAnchorElem.setAttribute("download", "census_proof.json");
+			dlAnchorElem.setAttribute("download", "census_list.json");
 			dlAnchorElem.click();
 		} catch (err) {
 			console.error(err);

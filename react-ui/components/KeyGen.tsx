@@ -1,37 +1,32 @@
 import { AnonVote, buildAnonVote } from "../hooks/anonvote";
+import { ethers } from "ethers";
 
 export default function KeyGen() {
-
 	const getPubKey = async () => {
 		if (window.ethereum) {
 			try {
-				const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
-				const signer = accounts[0]
+				const nLevels=16;
+				const anonVotingAddress = "0xcf66FfaFe927202a71F2C0918e83FfBF19fE15e8";
+				const text = "ANONVOTE KEY GENERATION SECRET";
 
-				//const chainID=5777;
 				// POTENTIAL PROBLEM, only during testing, I think.
 				// ISSUE: https://hardhat.org/hardhat-network/docs/metamask-issue
 				const currentChain = await ethereum.request({ method: 'eth_chainId' });
-				const nLevels=16;
+				const chainID = parseInt(currentChain, 16);
+				const web3gw = new ethers.providers.Web3Provider(window.ethereum)
+				const signer = await web3gw.getSigner();
+				const av = await buildAnonVote(chainID, nLevels);
 
-				const av = await buildAnonVote(currentChain, nLevels);
+				// Get stuff from the chain
+				await av.connect(web3gw, anonVotingAddress);
 
-				const msgText = "ANONVOTE KEY GENERATION SECRET";
-				try {
-					const msg = `0x${Buffer.from(msgText, 'utf8').toString('hex')}`;
-					const sign = await ethereum.request({
-						method: 'personal_sign',
-						params: [msg, signer, 'Example password'],
-					});
-	
-					const {privateKey, publicKey, compressedPublicKey } = await av.generateKey(sign);
+				// Generate the keys
+				const signature = await signer.signMessage(text);
+				const {privateKey, publicKey, compressedPublicKey } = await av.generateKey(signature);
 
-					document.getElementById('private-address').value = privateKey;
-					//document.getElementById('public-address').value = compressedPublicKey;
-					document.getElementById('public-address').value = publicKey;
-				} catch (err) {
-					console.error(err);
-				}
+				document.getElementById('private-address').value = privateKey;
+				document.getElementById('public-address').value = compressedPublicKey;
+				//document.getElementById('public-address').value = JSON.stringify(publicKey);
 			} catch (error) {
 				console.log({ error })
 			}
@@ -106,10 +101,14 @@ export default function KeyGen() {
                         className="block w-full flex-1 rounded-none rounded-r-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                       />
                     </div>
+                    <div className="col-span-6">
+                      <div className="mt-1 flex rounded-md justify-center font-medium">
+						<p className="mt-4 text-m text-gray-600">
+							This Public Key is what you provide to the creator of the voting process. Copy it and send it to them.
+						</p>
                     </div>
-            <p className="mt-4 text-m text-gray-500">
-              This Public Key is what you provide to the creator of the voting process. Copy it and send it to them.
-            </p>
+                    </div>
+                    </div>
                   </div>
                 <div className="bg-gray-50 px-4 py-3 text-right sm:px-6">
                   <button

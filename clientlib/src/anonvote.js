@@ -51,7 +51,7 @@ class AnonVote {
 
 		// Store the private and public key
 		this.privateKey = privateKey;
-		this.publicKey = [publicKey[0].toString(), publicKey[1].toString()];
+		this.publicKey = publicKey;
 
 
 		// Compute the compressed public key
@@ -206,7 +206,7 @@ class AnonVote {
 	getMerkleProof() {}
 	getProvingKey() {}
 
-	async castVote(snarkjs, signer, zkey, witnessCalcWasm, processID, censusRoot, merkleproof, voteBool) {
+	async castVote(snarkjs, signer, zkey, witnessCalcWasm, processID, censusRoot, merkleproof, voteBool, gasLimit) {
 		if (!this.web3gw) {
 			throw new Error("web3gw not defined. Use connect() first");
 		}
@@ -224,7 +224,7 @@ class AnonVote {
 		// call contract vote method sending the proof
 		await anonVotingWithSigner.vote(processID, voteBool,
 			proofAndPI.publicInputs.nullifier, proofAndPI.proof[0],
-			proofAndPI.proof[1], proofAndPI.proof[2]);
+			proofAndPI.proof[1], proofAndPI.proof[2], {gasLimit: gasLimit});
 	}
 
 	// Method to check if a voter has already voted in a process
