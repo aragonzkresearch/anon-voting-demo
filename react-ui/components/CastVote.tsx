@@ -15,6 +15,9 @@ export default function CastVote({open, close, voteAction, id, ipfs}) {
 		setFile(null);
 		setShowSpinner(false);
 		setShowButtons(false);
+		if (typeof ipfs != 'undefined') {
+            		setShowButtons(true);
+        	}
 	}, [close]);
 
 	const cleanup = () => {
@@ -122,7 +125,6 @@ export default function CastVote({open, close, voteAction, id, ipfs}) {
                          </div>
                          </div>
 						)}
-						{(typeof ipfs !== 'undefined') && (console.log("ipfs is defined, need to show vote buttons "))} // TODO - show buttons
                       </div>
                     </div>
                     <div className="mx-auto flex h-1 w-1 flex-shrink-0 items-center justify-center rounded-full bg-transparent sm:mx-0 sm:h-10 sm:w-10">
@@ -146,7 +148,6 @@ export default function CastVote({open, close, voteAction, id, ipfs}) {
                     type="button"
                     className="mt-3 inline-flex w-full justify-center rounded-md border border-transparent bg-green-500 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
                     onClick={ () => {
-							//doVote("1");
 							doVote(true);
 					}
 					}
@@ -164,7 +165,6 @@ export default function CastVote({open, close, voteAction, id, ipfs}) {
                     type="button"
                     className="inline-flex w-full justify-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm"
                     onClick={ () => {
-							//doVote("0");
 							doVote(false);
 					}
 					}
