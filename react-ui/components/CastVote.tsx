@@ -1,15 +1,11 @@
-import { VOTING_ADDR, N_LEVELS } from "../hooks/settings";
-import { AnonVote, buildAnonVote } from "clientlib";
-import { Fragment, useRef, useState } from 'react'
+import { Fragment, useState } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
-import { ExclamationTriangleIcon } from '@heroicons/react/24/outline'
-import React, { useEffect, Component } from 'react';
+import React, { useEffect } from 'react';
 import { FileUploader } from "react-drag-drop-files";
 
 export default function CastVote({open, close, voteAction, id, ipfs}) {
 
 	// Use these later to show progress
-	const [voteSuccess, setVoteSuccess] = useState(false);
 	const [showButtons, setShowButtons] = useState(false);
 	const [showSpinner, setShowSpinner] = useState(false);
 	const [file, setFile] = useState(null);
@@ -126,6 +122,7 @@ export default function CastVote({open, close, voteAction, id, ipfs}) {
                          </div>
                          </div>
 						)}
+						{(typeof ipfs !== 'undefined') && (console.log("ipfs is defined, need to show vote buttons "))} // TODO - show buttons
                       </div>
                     </div>
                     <div className="mx-auto flex h-1 w-1 flex-shrink-0 items-center justify-center rounded-full bg-transparent sm:mx-0 sm:h-10 sm:w-10">

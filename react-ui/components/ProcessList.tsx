@@ -1,6 +1,6 @@
 import { VOTING_ADDR, N_LEVELS } from "../hooks/settings";
-import { AnonVote, buildAnonVote } from "clientlib";
-import { BigNumber, ethers, utils } from "ethers";
+import { buildAnonVote } from "clientlib";
+import { ethers } from "ethers";
 import React, { useState, useEffect } from 'react';
 
 /* Sample Process
@@ -109,7 +109,7 @@ export default function ProcessList({clickAction, actionIcon}) {
                   </tr>
 				)}
                 {(processes.length > 0) && processes.map(process => (
-                  <tr key={process.processID} onClick={ () => { !process.closed && clickAction(process.processID, process.censusRoot.toString(), process.censusIpfs);}} style={{cursor: 'pointer'}} className="hover:hover:bg-indigo-100">
+                  <tr key={process.processID} onClick={ () => { !process.closed && clickAction(process.processID, process.censusRoot.toString(), process.censusIPFSHash);}} style={{cursor: 'pointer'}} className="hover:hover:bg-indigo-100">
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
       			  {actionIcon === "vote" && (
 <svg xmlns="http://www.w3.org/2000/svg" fill="antiquewhite" viewBox="0 0 20 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
