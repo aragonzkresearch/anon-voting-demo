@@ -1,13 +1,12 @@
 import { VOTING_ADDR, IPFS_GATEWAY, SIGNING_TEXT, N_LEVELS, GAS_LIMIT } from "../hooks/settings";
 
 import { Census, buildCensus } from "clientlib";
-import { AnonVote, buildAnonVote } from "clientlib";
+import { buildAnonVote } from "clientlib";
 
 import CastVote from "../components/CastVote";
 import ProcessList from "../components/ProcessList";
 
-import { Fragment, useRef, useState } from 'react';
-import Script from 'next/script';
+import { useState } from 'react';
 import { ethers } from "ethers";
 
 export default function Vote() {
@@ -43,11 +42,11 @@ export default function Vote() {
 				const {privateKey, publicKey, compressedPublicKey } = await av.generateKey(signature);
 
 				// Build the Census
-				const census = await buildCensus(N_LEVELS);
+				let census = await buildCensus(N_LEVELS);
 				if (typeof ipfsHash === 'undefined') {
 					await census.addCompKeys(keyArray);
 				} else {
-					await census.rebuildFromIPFS(IPFS_GATEWAY, ipfsHash, N_LEVELS);
+					census = await Census.rebuildFromIPFS(IPFS_GATEWAY, ipfsHash, N_LEVELS);
 				}
 
 				// Check that the uploaded census matches process
@@ -58,7 +57,7 @@ export default function Vote() {
 				}
 
 				// Find where this user's key is in census
-				const myIndex = keyArray.indexOf(compressedPublicKey);
+				const myIndex = keyArray.indexOf(compressedPublicKey); // TODO - keyArray is undefined if ipfsHash is defined
 				if (myIndex < 0) {
 					console.log("ERR: You are not part of census");
 					return;
