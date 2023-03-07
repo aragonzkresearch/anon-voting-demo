@@ -23,7 +23,7 @@ export default function ProcessList({clickAction, actionIcon}) {
 
   // Similar to componentDidMount and componentDidUpdate:
   useEffect(() => {
-	setNeedData(true);
+	setNeedData(true); 
 
 	const fetchData = async () => {
 		// POTENTIAL PROBLEM, only during testing, I think.
@@ -109,7 +109,7 @@ export default function ProcessList({clickAction, actionIcon}) {
                   </tr>
 				)}
                 {(processes.length > 0) && processes.map(process => (
-                  <tr key={process.processID} onClick={ () => { !process.closed && clickAction(process.processID, process.censusRoot.toString());}} style={{cursor: 'pointer'}} className="hover:hover:bg-indigo-100">
+                  <tr key={process.processID} onClick={ () => { !process.closed && clickAction(process.processID, process.censusRoot.toString(), process.censusIpfs);}} style={{cursor: 'pointer'}} className="hover:hover:bg-indigo-100">
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
       			  {actionIcon === "vote" && (
 <svg xmlns="http://www.w3.org/2000/svg" fill="antiquewhite" viewBox="0 0 20 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
@@ -132,7 +132,7 @@ export default function ProcessList({clickAction, actionIcon}) {
                       <div className="text-xs font-small text-gray-500">ID: {process.processID}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={process.closed ? "px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800" :
+                      <span className={process.closed ? "px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800" : 
                       	"px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800"} >
                         {process.closed ? "Closed" : "Open"}
                       </span>

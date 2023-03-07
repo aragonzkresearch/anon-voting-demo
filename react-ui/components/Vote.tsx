@@ -1,3 +1,5 @@
+import { VOTING_ADDR, IPFS_GATEWAY, SIGNING_TEXT, N_LEVELS, GAS_LIMIT } from "../hooks/settings";
+
 import { Census, buildCensus } from "clientlib";
 import { AnonVote, buildAnonVote } from "clientlib";
 
@@ -12,20 +14,17 @@ export default function Vote() {
 	const [open, setOpen] = useState(false);
 	const [procId, setProcId] = useState();
 	const [croot, setCroot] = useState();
+	const [ipfs, setIpfs] = useState();
 
-    let openModal = (childData, childRoot) => {
+    let openModal = (childData, childRoot, childIpfs) => {
 		setProcId(childData);
 		setCroot(childRoot);
+		setIpfs(childIpfs);
 		setOpen(!open)
     }
 
-	const doTheVote = async (id, keyArray, voteChoice) => {
+	const doTheVote = async (id, keyArray, ipfsHash, voteChoice) => {
 		if (window.ethereum) {
-			const VOTING_ADDR = "0xcf66FfaFe927202a71F2C0918e83FfBF19fE15e8";
-			const SIGNING_TEXT = "ANONVOTE KEY GENERATION SECRET";
-			const N_LEVELS = 16;
-			const GAS_LIMIT = 300000;
-
 			try {
 				// POTENTIAL PROBLEM, only during testing, I think.
 				// ISSUE: https://hardhat.org/hardhat-network/docs/metamask-issue
@@ -45,9 +44,27 @@ export default function Vote() {
 
 				// Build the Census
 				const census = await buildCensus(N_LEVELS);
-				await census.addCompKeys(keyArray);
+				if (typeof ipfsHash !== 'undefined') {
+					await census.addCompKeys(keyArray);
+				} else {
+					await census.rebuildFromIPFS(IPFS_GATEWAY, ipfsHash, N_LEVELS);
+				}
 
-				const merkelproof = await census.generateProof(0);
+				// Check that the uploaded census matches process
+				const processData = await av.getProcess(id);
+				if (processData.censusRoot !== census.root) {
+					console.log("ERR: this census does not match chosen process");
+					return;
+				}
+
+				// Find where this user's key is in census
+				const myIndex = keyArray.indexOf(compressedPublicKey);
+				if (myIndex < 0) {
+					console.log("ERR: You are not part of census");
+					return;
+				}
+
+				const merkelproof = await census.generateProof(myIndex);
 
 				const proofAndPI = await av.castVote(
 					snarkjs,
@@ -102,7 +119,7 @@ export default function Vote() {
           </div>
         </div>
         <div className="mt-5 md:col-span-2 md:mt-0">
-          <div className="sm:rounded-lg border-t border-transparent overflow-hidden">
+          <div className="sm:rounded-lg border-t border-transparent overflow-scroll">
 			<ProcessList
 				clickAction={ openModal }
 				actionIcon={"vote"}
@@ -116,6 +133,7 @@ export default function Vote() {
 			close={() => setOpen(false)}
 			voteAction={ doTheVote }
 			id={procId}
+			ipfs={ipfs}
 		/>
     </>
   )

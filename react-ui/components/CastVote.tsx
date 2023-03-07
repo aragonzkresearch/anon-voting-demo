@@ -1,10 +1,12 @@
+import { VOTING_ADDR, N_LEVELS } from "../hooks/settings";
+import { AnonVote, buildAnonVote } from "clientlib";
 import { Fragment, useRef, useState } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 import React, { useEffect, Component } from 'react';
 import { FileUploader } from "react-drag-drop-files";
 
-export default function CastVote({open, close, voteAction, id}) {
+export default function CastVote({open, close, voteAction, id, ipfs}) {
 
 	// Use these later to show progress
 	const [voteSuccess, setVoteSuccess] = useState(false);
@@ -36,6 +38,7 @@ export default function CastVote({open, close, voteAction, id}) {
 			voteAction(
 				id,
 				gmerk,
+				ipfs,
 				voteChoice
 			);
 		}
@@ -111,16 +114,18 @@ export default function CastVote({open, close, voteAction, id}) {
                         <p className="text-m text-black-500">
 							How would you like to vote on process: #<b>{id}</b>
                         </p>
+						{(typeof ipfs === 'undefined') && (
 		                <div className="mt-2 bg-gray-50 px-4 py-3 sm:flex sm:flex-row sm:px-6 items-center">
-                      <div className="mt-2">
-                        <p className="text-m text-gray-500 overflow-hidden px-4">
-							Upload census file to prepare to vote
-                        </p>
-                         </div>
-                      <div className="mt-2">
+                          <div className="mt-2">
+                            <p className="text-m text-gray-800 overflow-hidden px-4">
+						    	Upload census file to prepare to vote
+                            </p>
+                          </div>
+                          <div className="mt-2">
 							<FileUploader handleChange={handleChange} name="file" types={fileTypes} label="Upload Census JSON file"/>
                          </div>
                          </div>
+						)}
                       </div>
                     </div>
                     <div className="mx-auto flex h-1 w-1 flex-shrink-0 items-center justify-center rounded-full bg-transparent sm:mx-0 sm:h-10 sm:w-10">
