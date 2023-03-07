@@ -196,7 +196,7 @@ class AnonVote {
 
 
 
-		await anonVotingWithSigner.newProcess(topic, censusIpfsHash, censusRoot, startBlock, endBlock, minMajority, minTurnout);
+		await anonVotingWithSigner.newProcess(topic, censusIpfsHash, censusRoot, startBlock, endBlock, minTurnout, minMajority);
 
 
 		// Return the created processID
