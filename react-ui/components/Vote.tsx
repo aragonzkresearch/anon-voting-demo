@@ -52,7 +52,7 @@ export default function Vote() {
 
 				// Check that the uploaded census matches process
 				const processData = await av.getProcess(id);
-				if (processData.censusRoot !== census.root) {
+				if (processData.censusRoot.toString() !== census.root()) {
 					console.log("ERR: this census does not match chosen process");
 					return;
 				}
@@ -66,7 +66,7 @@ export default function Vote() {
 
 				const merkelproof = await census.generateProof(myIndex);
 
-				const proofAndPI = await av.castVote(
+				await av.castVote(
 					snarkjs,
 					signer,
 					"/circuit16.zkey",
@@ -90,12 +90,17 @@ export default function Vote() {
 				);
 */
 
+				setOpen(false);
+				/* the next if-else has no effect as proofAndPI
+				 * is not currently returned from the castVote
+				 * method
 				if (proofAndPI.proof !== null) {
 					setOpen(false);
 				} else {
 					setOpen(false);
 					alert("Casting vote failed");
 				}
+				*/
 			} catch (error) {
 				setOpen(false);
 				console.log({ error })
