@@ -1,3 +1,4 @@
+import { VOTING_ADDR, N_LEVELS, GAS_LIMIT, SIGNING_TEXT } from "../hooks/settings";
 import { Census, buildCensus } from "../hooks/census";
 import { AnonVote, buildAnonVote } from "../hooks/anonvote";
 
@@ -21,11 +22,6 @@ export default function Vote() {
 
 	const doTheVote = async (id, keyArray, voteChoice) => {
 		if (window.ethereum) {
-			const VOTING_ADDR = "0xcf66FfaFe927202a71F2C0918e83FfBF19fE15e8";
-			const SIGNING_TEXT = "ANONVOTE KEY GENERATION SECRET";
-			const N_LEVELS = 16;
-			const GAS_LIMIT = 300000;
-
 			try {
 				// POTENTIAL PROBLEM, only during testing, I think.
 				// ISSUE: https://hardhat.org/hardhat-network/docs/metamask-issue
@@ -49,7 +45,7 @@ export default function Vote() {
 
 				const merkelproof = await census.generateProof(0);
 
-				const proofAndPI = await av.castVote(
+				await av.castVote(
 					snarkjs,
 					signer,
 					"/circuit16.zkey",
@@ -60,18 +56,6 @@ export default function Vote() {
 					voteChoice,
 					GAS_LIMIT
 				);
-
-/*
-				const proofAndPI = await av.genZKProof(
-					snarkjs,
-					"/circuit16.zkey",
-					"/circuit16.wasm",
-					id,
-					census.root(),
-					merkelproof,
-					voteChoice
-				);
-*/
 
 				if (proofAndPI.proof !== null) {
 					setOpen(false);
