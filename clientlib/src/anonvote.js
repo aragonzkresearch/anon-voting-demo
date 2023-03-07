@@ -221,6 +221,29 @@ class AnonVote {
 		let proofAndPI = await this.genZKProof(snarkjs, zkey, witnessCalcWasm,
 			processID, censusRoot, merkleproof, vote);
 
+		// before sending the tx, verify the zkproof locally
+		let p = proofAndPI.proof;
+		let proofNoSolidity = { // proof in snarkjs expected format
+			pi_a: p[0],
+			pi_b: [
+				[p[1][0][1], p[1][0][0]],
+				[p[1][1][1], p[1][1][0]]
+			],
+			pi_c: p[2]
+		};
+		let publicInputs = [ // publicInputs in snarkjs expected format
+			proofAndPI.publicInputs.chainID,
+			proofAndPI.publicInputs.processID,
+			proofAndPI.publicInputs.censusRoot,
+			proofAndPI.publicInputs.weight,
+			proofAndPI.publicInputs.nullifier,
+			proofAndPI.publicInputs.vote
+		];
+		// verify the zk-proof
+		const vKey = await snarkjs.zKey.exportVerificationKey(zkey);
+		const isValid = await snarkjs.groth16.verify(vKey, publicInputs, proofNoSolidity);
+		if (!isValid) throw new Error("The generated proof is not valid");
+
 		// call contract vote method sending the proof
 		await anonVotingWithSigner.vote(processID, voteBool,
 			proofAndPI.publicInputs.nullifier, proofAndPI.proof[0],
