@@ -15,7 +15,8 @@
 	"circomlib": "^2.0.5",
     "ethers": "^5.5.3",
 	"react-drag-drop-files": "^2.3.9",
-    "ffjavascript": "^0.2.57"
+    "ffjavascript": "^0.2.57",
+    "clientlib": "file:../clientlib"
   },
   "devDependencies": {
     "@tailwindcss/aspect-ratio": "^0.4.2",

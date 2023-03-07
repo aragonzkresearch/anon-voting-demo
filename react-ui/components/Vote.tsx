@@ -1,5 +1,5 @@
-import { Census, buildCensus } from "../hooks/census";
-import { AnonVote, buildAnonVote } from "../hooks/anonvote";
+import { Census, buildCensus } from "clientlib";
+import { AnonVote, buildAnonVote } from "clientlib";
 
 import CastVote from "../components/CastVote";
 import ProcessList from "../components/ProcessList";
@@ -29,7 +29,7 @@ export default function Vote() {
 			try {
 				// POTENTIAL PROBLEM, only during testing, I think.
 				// ISSUE: https://hardhat.org/hardhat-network/docs/metamask-issue
-				const currentChain = await ethereum.request({ method: 'eth_chainId' });
+				const currentChain = await window.ethereum.request({ method: 'eth_chainId' });
 				const chainID = parseInt(currentChain, 16);
 		
 				const web3gw = new ethers.providers.Web3Provider(window.ethereum)

@@ -1,5 +1,5 @@
 import { VOTING_ADDR, N_LEVELS } from "../hooks/settings";
-import { AnonVote, buildAnonVote } from "../hooks/anonvote";
+import { AnonVote, buildAnonVote } from "clientlib";
 import { BigNumber, ethers, utils } from "ethers";
 import React, { useState, useEffect } from 'react';
 
@@ -23,12 +23,12 @@ export default function ProcessList({clickAction, actionIcon}) {
 
   // Similar to componentDidMount and componentDidUpdate:
   useEffect(() => {
-	setNeedData(true); 
+	setNeedData(true);
 
 	const fetchData = async () => {
 		// POTENTIAL PROBLEM, only during testing, I think.
 		// ISSUE: https://hardhat.org/hardhat-network/docs/metamask-issue
-		const currentChain = await ethereum.request({ method: 'eth_chainId' });
+		const currentChain = await window.ethereum.request({ method: 'eth_chainId' });
 		const web3gw = new ethers.providers.Web3Provider(window.ethereum)
 
 		// Get stuff from the chain
@@ -132,7 +132,7 @@ export default function ProcessList({clickAction, actionIcon}) {
                       <div className="text-xs font-small text-gray-500">ID: {process.processID}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={process.closed ? "px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800" : 
+                      <span className={process.closed ? "px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800" :
                       	"px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800"} >
                         {process.closed ? "Closed" : "Open"}
                       </span>

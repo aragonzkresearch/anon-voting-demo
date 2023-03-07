@@ -4,7 +4,7 @@ import KeyGen from "../components/KeyGen";
 import MenuBar from "../components/MenuBar";
 import { useListen } from "../hooks/useListen";
 import { useMetamask } from "../hooks/useMetamask";
-import { AnonVote, buildAnonVote } from "../hooks/anonvote";
+import { AnonVote, buildAnonVote } from "clientlib";
 
 const Home: NextPage = () => {
   const { dispatch } = useMetamask();

@@ -16,6 +16,7 @@ contract AnonVoting {
         uint256 startBlockNum; // block number when the process starts
         uint256 endBlockNum; // block number when the process ends, after this block no more votes are accepted and the `endProcess` function can be called
 
+        string censusIPFSHash; // the IPFS hash of the census file, only used to get the census file from IPFS by the front-end (not used by the contract)
         uint256 censusRoot; // the root of the Sparse Merkle Census tree
         mapping(uint256 => bool) nullifiers; // mapping of nullifiers => used/nullifier, to prevent double votes
 
@@ -57,7 +58,7 @@ contract AnonVoting {
     // Function to create a new process
     // Increments the lastProcessID, and stores the new Process into `processes` mapping
     // Note: the first process will have processID = 1 (not 0)
-    function newProcess(string memory _topic, uint256 _censusRoot, uint256 _startBlockNum, uint256 _endBlockNum, uint8 _minTurnout, uint8 _minMajority) external {
+    function newProcess(string memory _topic, string calldata _censusIPFSHash, uint256 _censusRoot, uint256 _startBlockNum, uint256 _endBlockNum, uint8 _minTurnout, uint8 _minMajority) external {
         lastProcessID++; // Increment lastProcessID by 1
         // Require that both the start and end block numbers are in the future
         require(_startBlockNum > block.number, "Start block number must be in the future");
@@ -66,6 +67,7 @@ contract AnonVoting {
         Process storage process = processes[lastProcessID];
         process.creator = msg.sender;
         process.topic = _topic;
+        process.censusIPFSHash = _censusIPFSHash;
         process.censusRoot = _censusRoot;
         process.startBlockNum = _startBlockNum;
         process.endBlockNum = _endBlockNum;

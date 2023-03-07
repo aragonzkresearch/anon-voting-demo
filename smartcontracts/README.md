@@ -33,4 +33,4 @@ npx hardhat run scripts/deploy.js --network sepolia
 
 This will deploy the contract to the Ethereum Sepolia testnet as well as verify the contract on Etherscan.
 
-The latest deployment of AnonVote can be found [here](https://sepolia.etherscan.io/address/0xcf66FfaFe927202a71F2C0918e83FfBF19fE15e8).
+The latest deployment of AnonVote can be found [here](https://sepolia.etherscan.io/address/0x4AC1BEE5B764521a0d919Fe4580452Ee5dc47613).

@@ -1,7 +1,8 @@
 import { VOTING_ADDR, SIGNING_TEXT, N_LEVELS } from "../hooks/settings";
 import React, { useState } from 'react';
 import { useEffect, Component } from 'react';
-import { AnonVote, buildAnonVote } from "../hooks/anonvote";
+// @ts-ignore
+import { AnonVote, buildAnonVote } from "clientlib";
 import { ethers } from "ethers";
 
 export default function KeyGen() {
@@ -12,7 +13,7 @@ export default function KeyGen() {
 			try {
 				// POTENTIAL PROBLEM, only during testing, I think.
 				// ISSUE: https://hardhat.org/hardhat-network/docs/metamask-issue
-				const currentChain = await ethereum.request({ method: 'eth_chainId' });
+				const currentChain = await window.ethereum.request({ method: 'eth_chainId' });
 				const chainID = parseInt(currentChain, 16);
 				const web3gw = new ethers.providers.Web3Provider(window.ethereum)
 				const signer = await web3gw.getSigner();

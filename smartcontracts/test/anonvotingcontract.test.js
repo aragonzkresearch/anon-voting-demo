@@ -58,9 +58,10 @@ describe("AnonVoting", function () {
         const processTopic = "Test process";
         const startBlockNum = (await ethers.provider.getBlock("latest")).timestamp + 1000;
         const endBlockNum = startBlockNum + 1000;
-        const censusRoot = "0x0000000000000000000000000000000000000000000000000000000000000000"; // We don't use censuses in this test
+        const censusRoot = "0x0000000000000000000000000000000000000007000000000000000000000000"; // We don't use censuses in this test
+        const censusIPFSHash = "QmYMfJvTwMRR6nrGgTwneAEy1daDi4xhPReb6tzRTmvgsz"; // We don't use censuses in this test
 
-        await anonVoting.newProcess(processTopic, censusRoot, startBlockNum, endBlockNum, DEFAULT_MIN_TURNOUT, DEFAULT_MIN_MAJORITY);
+        await anonVoting.newProcess(processTopic, censusIPFSHash, censusRoot, startBlockNum, endBlockNum, DEFAULT_MIN_TURNOUT, DEFAULT_MIN_MAJORITY);
 
         expect(await anonVoting.lastProcessID()).to.equal(processID);
 
@@ -74,6 +75,7 @@ describe("AnonVoting", function () {
         expect(processDetails.endBlockNum).to.equal(endBlockNum);
 
         expect(processDetails.censusRoot).to.equal(censusRoot);
+        expect(processDetails.censusIPFSHash).to.equal(censusIPFSHash);
         // We can not check the nullifiers map because it is a mapping
 
         expect(processDetails.minTurnout).to.equal(DEFAULT_MIN_TURNOUT);
@@ -92,9 +94,10 @@ describe("AnonVoting", function () {
       const startBlockNum = 0;
       const endBlockNum = startBlockNum + 1000;
       const censusRoot = "0x0000000000000000000000000000000000000000000000000000000000000000"; // We don't use censuses in this test
+      const censusIPFSHash = "QmYMfJvTwMRR6nrGgTwneAEy1daDi4xhPReb6tzRTmvgsz"; // We don't use censuses in this test
 
       // This should throw an error because the startBlockNum is in the past
-      await expect(anonVoting.newProcess(processTopic, censusRoot, startBlockNum, endBlockNum, DEFAULT_MIN_TURNOUT, DEFAULT_MIN_MAJORITY))
+      await expect(anonVoting.newProcess(processTopic, censusIPFSHash, censusRoot, startBlockNum, endBlockNum, DEFAULT_MIN_TURNOUT, DEFAULT_MIN_MAJORITY))
           .to.be.rejectedWith("Start block number must be in the future");
 
       // Make sure the process wasn't created
@@ -109,9 +112,10 @@ describe("AnonVoting", function () {
       const startBlockNum = (await ethers.provider.getBlock("latest")).timestamp + 1000;
       const endBlockNum = startBlockNum;
       const censusRoot = "0x0000000000000000000000000000000000000000000000000000000000000000"; // We don't use censuses in this test
+      const censusIPFSHash = "QmYMfJvTwMRR6nrGgTwneAEy1daDi4xhPReb6tzRTmvgsz"; // We don't use censuses in this test
 
       // This should throw an error because endBlockNum must be greater than startBlockNum
-      await expect(anonVoting.newProcess(processTopic, censusRoot, startBlockNum, endBlockNum, DEFAULT_MIN_TURNOUT, DEFAULT_MIN_MAJORITY))
+      await expect(anonVoting.newProcess(processTopic, censusIPFSHash, censusRoot, startBlockNum, endBlockNum, DEFAULT_MIN_TURNOUT, DEFAULT_MIN_MAJORITY))
           .to.be.rejectedWith("End block number must be after start block number");
 
       // Make sure the process wasn't created
@@ -128,8 +132,9 @@ describe("AnonVoting", function () {
     const startBlockNum = (await ethers.provider.getBlock("latest")).number + 1000;
     const endBlockNum = startBlockNum + 1000;
     const censusRoot = "0x0000000000000000000000000000000000000000000000000000000000000000"; // We don't use censuses in this test
+    const censusIPFSHash = "QmYMfJvTwMRR6nrGgTwneAEy1daDi4xhPReb6tzRTmvgsz"; // We don't use censuses in this test
 
-    await anonVoting.newProcess(processTopic, censusRoot, startBlockNum, endBlockNum, DEFAULT_MIN_TURNOUT, DEFAULT_MIN_MAJORITY);
+    await anonVoting.newProcess(processTopic, censusIPFSHash, censusRoot, startBlockNum, endBlockNum, DEFAULT_MIN_TURNOUT, DEFAULT_MIN_MAJORITY);
 
     return { anonVoting, owner, processID, processTopic, startBlockNum, endBlockNum, censusRoot, minTurnout: DEFAULT_MIN_TURNOUT, minMajority: DEFAULT_MIN_MAJORITY };
 
@@ -215,17 +220,18 @@ describe("AnonVoting", function () {
           // proofAndPI has been generated with the anonvote lib
           const proofAndPI = JSON.parse(`{"publicInputs":{"chainID":"31337","processID":"3","censusRoot":"21823409822845156879367346550439134574128510197817385772757622927609968453408","weight":"1","nullifier":"2118624858783697088557452517993261412014268393748737523839644268649750802296","vote":"1"},"proof":[["2924213430630915703866902299146918413679754219712159207534869393190435105431","17956672624584971245919241488821602897469390883367271267371572616839635574325"],[["14130673802698948280268134371581271546847304042923616990793212171899776891648","10467087115291494182431962173838930747838205210719444081018699110481644541335"],["21270106270254323983869461454419059202030334198944272077964212758661515552409","4592822165267955978060829529502076420540460341765553496690574674560396235621"]],["19638091319210426889512154179350345291593650263103484348752344095219528395396","16036468063877376957677616996053924313020981138569866079649318262289059741910"]]}`);
 
-          const { anonVoting, owner } = await loadFixture(deployAnonVotingFixture); // With ZKVerify activated
+          const { anonVoting } = await loadFixture(deployAnonVotingFixture); // With ZKVerify activated
 
           const processTopic = "Test process";
           const startBlockNum = (await ethers.provider.getBlock("latest")).number + 1000;
           const endBlockNum = startBlockNum + 1000;
           const censusRoot = proofAndPI.publicInputs.censusRoot;
+          const censusIPFSHash = "QmYMfJvTwMRR6nrGgTwneAEy1daDi4xhPReb6tzRTmvgsz";
 
           // create some new processes to be in the processID=3 to match the zkproof
-          await anonVoting.newProcess(processTopic, censusRoot, startBlockNum, endBlockNum, DEFAULT_MIN_TURNOUT, DEFAULT_MIN_MAJORITY);
-          await anonVoting.newProcess(processTopic, censusRoot, startBlockNum, endBlockNum, DEFAULT_MIN_TURNOUT, DEFAULT_MIN_MAJORITY);
-          await anonVoting.newProcess(processTopic, censusRoot, startBlockNum, endBlockNum, DEFAULT_MIN_TURNOUT, DEFAULT_MIN_MAJORITY);
+          await anonVoting.newProcess(processTopic, censusIPFSHash, censusRoot, startBlockNum, endBlockNum, DEFAULT_MIN_TURNOUT, DEFAULT_MIN_MAJORITY);
+          await anonVoting.newProcess(processTopic, censusIPFSHash, censusRoot, startBlockNum, endBlockNum, DEFAULT_MIN_TURNOUT, DEFAULT_MIN_MAJORITY);
+          await anonVoting.newProcess(processTopic, censusIPFSHash, censusRoot, startBlockNum, endBlockNum, DEFAULT_MIN_TURNOUT, DEFAULT_MIN_MAJORITY);
 
           expect(await anonVoting.lastProcessID()).to.equal(proofAndPI.publicInputs.processID);
           const processID = Number(await anonVoting.lastProcessID());
@@ -235,7 +241,7 @@ describe("AnonVoting", function () {
           await ethers.provider.send("hardhat_mine", ['0x'+skipBlocks.toString(16)]);
 
           let vote = false;
-          if (proofAndPI.publicInputs.vote=="1") {
+          if (proofAndPI.publicInputs.vote==="1") {
               vote = true;
           }
 
