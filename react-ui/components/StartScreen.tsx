@@ -44,7 +44,7 @@ export default function StartScreen() {
           <div className="relative mt-16 h-80 lg:mt-8">
             <div className="absolute top-0 left-0 w-[57rem] max-w-none rounded-md bg-white/5 ring-1 ring-white/10">
 				<Image
-              src="/darkvote.jpg"
+              src="/darkvote.webp"
               alt="App screenshot"
               width={1824}
               height={1080}

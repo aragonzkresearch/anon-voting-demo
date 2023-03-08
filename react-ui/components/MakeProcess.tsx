@@ -10,6 +10,10 @@ export default function MakeProcess() {
 	const [showProcessId, setShowProcessId] = useState(false);
 	const [newProcessId, setNewProcessId] = useState("");
 
+	// Field Values
+	const [startBlockNum, setStartBlockNum] = useState<number>();
+	const [endBlockNum, setEndBlockNum] = useState<number>();
+
 	useEffect(() => {
 		getBlockNums();
 	}, []);
@@ -19,10 +23,9 @@ export default function MakeProcess() {
 			try {
 				const web3gw = new ethers.providers.Web3Provider(window.ethereum)
 				const curBlock = await web3gw.getBlockNumber();
-				const curBlockPlusOneHour = curBlock + 300;
 
-				document.getElementById('start-blocknum').value = curBlock + 60;
-				document.getElementById('end-blocknum').value = curBlockPlusOneHour;
+				setStartBlockNum(curBlock + 60);
+				setEndBlockNum(curBlock + 300);
 			} catch (error) {
 				console.log({ error });
 			}
@@ -45,13 +48,13 @@ export default function MakeProcess() {
 				await av.connect(web3gw, VOTING_ADDR);
 
 				// Get data from user
-				const topic = document.getElementById('topic').value;
-				const censusRoot = document.getElementById('census-merkel-root').value;
-                const censusIpfs = document.getElementById('census-ipfs-hash').value.toString();
-				const startBlock = document.getElementById('start-blocknum').value;
-				const endBlock = document.getElementById('end-blocknum').value;
-				const minTurnout = document.getElementById('min-turnout').value;
-				const minMajority = document.getElementById('min-majority').value;
+				const topic = (document.getElementById('topic') as HTMLInputElement).value;
+				const censusRoot = (document.getElementById('census-merkel-root') as HTMLInputElement).value;
+                const censusIpfs = (document.getElementById('census-ipfs-hash') as HTMLInputElement).value.toString();
+				const startBlock = (document.getElementById('start-blocknum') as HTMLInputElement).value;
+				const endBlock = (document.getElementById('end-blocknum') as HTMLInputElement).value;
+				const minTurnout = (document.getElementById('min-turnout') as HTMLInputElement).value;
+				const minMajority = (document.getElementById('min-majority') as HTMLInputElement).value;
 
 				// Create the proccess
 				const processID = await av.newProcess(topic, censusIpfs, censusRoot, startBlock, endBlock, minTurnout, minMajority, signer);
@@ -142,6 +145,7 @@ export default function MakeProcess() {
                       <input
                         type="text"
                         name="start-blocknum"
+                        value={startBlockNum}
                         id="start-blocknum"
                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                       />
@@ -154,6 +158,7 @@ export default function MakeProcess() {
                       <input
                         type="text"
                         name="end-blocknum"
+                        value={endBlockNum}
                         id="end-blocknum"
                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                       />
@@ -209,7 +214,7 @@ export default function MakeProcess() {
                     className="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                   >
 				{ showSpinner ? (
-<div class="inline-block h-6 w-6 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] text-primary motion-reduce:animate-[spin_1.5s_linear_infinite]" role="status"></div>
+<div className="inline-block h-6 w-6 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] text-primary motion-reduce:animate-[spin_1.5s_linear_infinite]" role="status"></div>
 				) : (
                     'Create Voting Process'
 				)}

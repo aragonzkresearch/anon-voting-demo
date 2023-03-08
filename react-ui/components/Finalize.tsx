@@ -1,4 +1,3 @@
-import CloseProcess from "../components/CloseProcess";
 import ProcessList from "../components/ProcessList";
 import FinalizePopup from "../components/FinalizePopup";
 import { Fragment, useRef, useState } from 'react';

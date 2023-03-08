@@ -1,5 +1,6 @@
-import { VOTING_ADDR, IPFS_GATEWAY, SIGNING_TEXT, N_LEVELS, GAS_LIMIT } from "../hooks/settings";
+import { VOTING_ADDR, IPFS_GATEWAY, SIGNING_TEXT, N_LEVELS, VOTING_GAS_LIMIT } from "../hooks/settings";
 
+// @ts-ignore
 import { Census, buildCensus } from "clientlib";
 import { buildAnonVote } from "clientlib";
 
@@ -80,6 +81,7 @@ export default function Vote() {
 
 				console.log("av.castVote");
 				await av.castVote(
+					// @ts-ignore
 					snarkjs,
 					signer,
 					"/circuit16.zkey",
@@ -88,7 +90,7 @@ export default function Vote() {
 					census.root(),
 					merkelproof,
 					voteChoice,
-					GAS_LIMIT
+					VOTING_GAS_LIMIT
 				);
 
 /*
