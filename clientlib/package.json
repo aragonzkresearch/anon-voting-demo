@@ -9,7 +9,7 @@
 		"test": "test"
 	},
 	"scripts": {
-		"postinstall": "[ ! -d node_modules ] || cd node_modules && ( [ ! -d ovote ] || (echo YES && git clone https://github.com/aragonzkresearch/ovote.git && rm -rf .git && cd ovote/circuits && npm install && cd ../../../webtest && bash prepare-files.sh))",
+		"postinstall": "[ ! -d node_modules ] || [ -d node_modules/ovote ] || (cd node_modules && git clone https://github.com/aragonzkresearch/ovote.git && rm -rf .git && cd ovote/circuits && npm install && cd ../../../webtest && bash prepare-files.sh)",
 		"pretest": "mkdir -p test/circuits",
 		"test": "npx hardhat test"
 	},
