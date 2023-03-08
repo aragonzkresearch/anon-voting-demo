@@ -9,6 +9,7 @@ import React, { useState, useEffect } from 'react';
 	topic: process.topic,
 	startBlock: process.startBlockNum,
 	endBlock: process.endBlockNum,
+	censusIPFSHash: process.censusIPFSHash,
 	censusRoot: process.censusRoot,
 	minMajority: process.minMajority,
 	minTurnout: process.minTurnout,
@@ -84,6 +85,9 @@ export default function ProcessList({clickAction, actionIcon}) {
 					EndBlock
                   </th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" >
+					Census IPFS Hash
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" >
 					Creator
                   </th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" >
@@ -148,6 +152,9 @@ export default function ProcessList({clickAction, actionIcon}) {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
 						{process.endBlock.toString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+						{process.censusIPFSHash}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
 						{process.creator}

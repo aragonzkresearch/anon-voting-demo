@@ -5,6 +5,7 @@ import { Census, buildCensus } from "clientlib";
 
 export default function MakeCensus() {
 	const [censusRoot, setCensusRoot] = useState("");
+	const [showCopy, setShowCopy] = useState(false);
 
 	const createCensus = async () => {
 		try {
@@ -31,6 +32,10 @@ export default function MakeCensus() {
 	function copyRoot() {
 		// Copy the text inside the text field
 		navigator.clipboard.writeText(censusRoot);
+		setShowCopy(true);
+		return setTimeout(function() {
+                    setShowCopy(false);
+                }, 3000);
 	}
 
   return (
@@ -97,6 +102,11 @@ export default function MakeCensus() {
                           id="census-root"
                           className="block w-full flex-1 rounded-none rounded-r-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                         />
+						{showCopy && (
+							<div className="bg-green-100 border border-green-400 text-green-700 px-4 py-1 rounded relative" role="alert">
+								<span className="block sm:inline">Key Copied to Clipboard.</span>
+							</div>
+						)}
                       </div>
                     </div>
                   </div>

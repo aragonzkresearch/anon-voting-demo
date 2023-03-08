@@ -8,6 +8,7 @@ import { ethers } from "ethers";
 export default function KeyGen() {
 	const [buttonDisabled, setButtonDisabled] = useState(false);
 	const [pubKey, setPubKey] = useState("");
+	const [showCopy, setShowCopy] = useState(false);
 
 	const getPubKey = async () => {
 		if (window.ethereum) {
@@ -38,6 +39,10 @@ export default function KeyGen() {
 	function copyAddress() {
 		// Copy the text inside the text field
 		navigator.clipboard.writeText(pubKey);
+		setShowCopy(true);
+		return setTimeout(function() {
+                    setShowCopy(false);
+                }, 3000);
 	}
 
   return (
@@ -80,6 +85,11 @@ export default function KeyGen() {
                         className="block w-full flex-1 rounded-none rounded-r-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                       />
                     </div>
+					{showCopy && (
+						<div className="bg-green-100 border border-green-400 text-green-700 px-4 py-1 rounded relative" role="alert">
+							<span className="block sm:inline">Key Copied to Clipboard.</span>
+						</div>
+                    )}
                     <div className="col-span-6">
                       <div className="mt-1 flex rounded-md justify-center font-medium px-4 py-1">
 						<p className="mt-4 text-m text-gray-600">

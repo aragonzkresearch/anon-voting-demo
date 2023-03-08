@@ -10,10 +10,6 @@ export default function MakeProcess() {
 	const [showProcessId, setShowProcessId] = useState(false);
 	const [newProcessId, setNewProcessId] = useState("");
 
-	// Field Values
-	const [startBlockNum, setStartBlockNum] = useState<number>();
-	const [endBlockNum, setEndBlockNum] = useState<number>();
-
 	useEffect(() => {
 		getBlockNums();
 	}, []);
@@ -24,8 +20,12 @@ export default function MakeProcess() {
 				const web3gw = new ethers.providers.Web3Provider(window.ethereum)
 				const curBlock = await web3gw.getBlockNumber();
 
-				setStartBlockNum(curBlock + 60);
-				setEndBlockNum(curBlock + 300);
+				//setStartBlockNum(curBlock + 60);
+				//setEndBlockNum(curBlock + 300);
+				const curBlockPlusOneHour = curBlock + 300;
+
+                (document.getElementById('start-blocknum') as HTMLInputElement).value = (curBlock + 60).toString();
+                (document.getElementById('end-blocknum') as HTMLInputElement).value = curBlockPlusOneHour.toString();
 			} catch (error) {
 				console.log({ error });
 			}
@@ -97,6 +97,13 @@ export default function MakeProcess() {
 						</p>
 					</div>
 				</div>
+					{showProcessId && (
+						<div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
+							<strong className="font-bold">Success!</strong>
+							<span className="block sm:inline">&nbsp; It worked. Process created. ID: { newProcessId } </span>
+							<span className="absolute top-0 bottom-0 right-0 px-4 py-3"></span>
+						</div>
+                    )}
                   <div className="grid grid-cols-3 gap-6">
                     <div className="col-span-6">
                       <label htmlFor="topic" className="block text-m font-medium text-gray-800 py-1">
@@ -145,7 +152,6 @@ export default function MakeProcess() {
                       <input
                         type="text"
                         name="start-blocknum"
-                        value={startBlockNum}
                         id="start-blocknum"
                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                       />
@@ -158,7 +164,6 @@ export default function MakeProcess() {
                       <input
                         type="text"
                         name="end-blocknum"
-                        value={endBlockNum}
                         id="end-blocknum"
                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                       />
@@ -189,23 +194,6 @@ export default function MakeProcess() {
                       />
                     </div>
                   </div>
-      			  {showProcessId && (
-                  <div className="grid grid-cols-3 gap-6">
-                    <div className="col-span-6">
-                      <label htmlFor="process-id" className="block text-m font-medium text-gray-800 py-1">
-                        Process ID
-                      </label>
-                      <input
-                        type="text"
-                        name="process-id"
-                        disabled={true}
-                        id="process-id"
-						value={newProcessId}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                      />
-                    </div>
-                  </div>
-					)}
                 </div>
 
                 <div className="bg-gray-50 px-4 py-3 text-right sm:px-6">
