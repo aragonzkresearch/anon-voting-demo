@@ -10,10 +10,6 @@ export default function MakeProcess() {
 	const [showProcessId, setShowProcessId] = useState(false);
 	const [newProcessId, setNewProcessId] = useState("");
 
-	// Field Values
-	const [startBlockNum, setStartBlockNum] = useState<number>();
-	const [endBlockNum, setEndBlockNum] = useState<number>();
-
 	useEffect(() => {
 		getBlockNums();
 	}, []);
@@ -23,9 +19,10 @@ export default function MakeProcess() {
 			try {
 				const web3gw = new ethers.providers.Web3Provider(window.ethereum)
 				const curBlock = await web3gw.getBlockNumber();
+				const curBlockPlusOneHour = curBlock + 300;
 
-				setStartBlockNum(curBlock + 60);
-				setEndBlockNum(curBlock + 300);
+                		(document.getElementById('start-blocknum') as HTMLInputElement).value = (curBlock + 60).toString();
+              			(document.getElementById('end-blocknum') as HTMLInputElement).value = curBlockPlusOneHour.toString();
 			} catch (error) {
 				console.log({ error });
 			}
@@ -145,7 +142,6 @@ export default function MakeProcess() {
                       <input
                         type="text"
                         name="start-blocknum"
-                        value={startBlockNum}
                         id="start-blocknum"
                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                       />
@@ -158,7 +154,6 @@ export default function MakeProcess() {
                       <input
                         type="text"
                         name="end-blocknum"
-                        value={endBlockNum}
                         id="end-blocknum"
                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                       />
