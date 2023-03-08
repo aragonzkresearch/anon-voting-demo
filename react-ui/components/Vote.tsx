@@ -7,6 +7,7 @@ import { buildAnonVote } from "clientlib";
 import CastVote from "../components/CastVote";
 import ProcessList from "../components/ProcessList";
 
+import Script from 'next/script'
 import { useState } from 'react';
 import { ethers } from "ethers";
 
@@ -131,6 +132,7 @@ export default function Vote() {
 
   return (
     <>
+    	<Script src="/snarkjs.min.js" />
       <div className="mx-auto max-w-7xl py-6 sm:px-6 lg:px-8">
         <div className="md:grid md:grid-cols-3 md:gap-6">
           <div className="md:col-span-1">

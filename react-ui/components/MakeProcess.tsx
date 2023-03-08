@@ -23,9 +23,9 @@ export default function MakeProcess() {
 				//setStartBlockNum(curBlock + 60);
 				//setEndBlockNum(curBlock + 300);
 				const curBlockPlusOneHour = curBlock + 300;
-
-                (document.getElementById('start-blocknum') as HTMLInputElement).value = (curBlock + 60).toString();
-                (document.getElementById('end-blocknum') as HTMLInputElement).value = curBlockPlusOneHour.toString();
+        
+        (document.getElementById('start-blocknum') as HTMLInputElement).value = (curBlock + 60).toString();
+        (document.getElementById('end-blocknum') as HTMLInputElement).value = curBlockPlusOneHour.toString();
 			} catch (error) {
 				console.log({ error });
 			}

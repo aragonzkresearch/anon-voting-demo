@@ -36,6 +36,7 @@ export default function MakeCensus() {
 		return setTimeout(function() {
                     setShowCopy(false);
                 }, 3000);
+
 	}
 
   return (
