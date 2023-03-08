@@ -7,6 +7,7 @@ import { ethers } from "ethers";
 
 export default function KeyGen() {
 	const [buttonDisabled, setButtonDisabled] = useState(false);
+	const [pubKey, setPubKey] = useState("");
 
 	const getPubKey = async () => {
 		if (window.ethereum) {
@@ -26,7 +27,7 @@ export default function KeyGen() {
 				const signature = await signer.signMessage(SIGNING_TEXT);
 				const {privateKey, publicKey, compressedPublicKey } = await av.generateKey(signature);
 
-				document.getElementById('public-address').value = compressedPublicKey;
+				setPubKey(compressedPublicKey);
 				setButtonDisabled(true);
 			} catch (error) {
 				console.log({ error })
@@ -35,15 +36,8 @@ export default function KeyGen() {
 	};
 
 	function copyAddress() {
-		// Get the text field
-		var copyText = document.getElementById("public-address");
-
-		// Select the text field
-		copyText.select();
-		copyText.setSelectionRange(0, 99999); // For mobile devices
-
 		// Copy the text inside the text field
-		navigator.clipboard.writeText(copyText.value);
+		navigator.clipboard.writeText(pubKey);
 	}
 
   return (
@@ -81,6 +75,7 @@ export default function KeyGen() {
                         type="text"
                         disabled={ true }
                         name="public-address"
+                        value={pubKey}
                         id="public-address"
                         className="block w-full flex-1 rounded-none rounded-r-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                       />

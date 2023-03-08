@@ -54,10 +54,8 @@ export default function CastVote({open, close, voteAction, id, ipfs}) {
 		reader.addEventListener(
 			"load",
 			() => {
-				//let merkleproof = JSON.parse(reader.result);
-				//setMerk(merkleproof);
-				//let censusData = reader.result;
-				let censusData = JSON.parse(reader.result);
+				let fileData = reader.result as string;
+				let censusData = JSON.parse(fileData);
 				setMerk(censusData);
 				setShowButtons(true);
 			},

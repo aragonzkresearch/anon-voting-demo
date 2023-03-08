@@ -1,23 +1,22 @@
+import { Fragment, useState } from 'react'
 import { N_LEVELS } from "../hooks/settings";
 // @ts-ignore
 import { Census, buildCensus } from "clientlib";
 
 export default function MakeCensus() {
+	const [censusRoot, setCensusRoot] = useState("");
 
 	const createCensus = async () => {
 		try {
 			let census = await buildCensus(N_LEVELS);
 	
-			let keyList = document.getElementById('keylist').value;
+			let keyList = (document.getElementById('keylist') as HTMLInputElement).value;
 			let keyArray = keyList.split('\n');
 
 			await census.addCompKeys(keyArray);
 
 			let root = await census.root();
-			//let proof = await census.generateProof(0);
-	
-			//document.getElementById('census-root').value = proof.censusRoot;
-			document.getElementById('census-root').value = root;
+			setCensusRoot(root);
 
 			let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(keyArray));
 			let dlAnchorElem = document.getElementById('downloadAnchorElem');
@@ -30,15 +29,8 @@ export default function MakeCensus() {
 	};
 
 	function copyRoot() {
-		// Get the text field
-		var copyText = document.getElementById("census-root");
-
-		// Select the text field
-		copyText.select();
-		copyText.setSelectionRange(0, 99999); // For mobile devices
-
 		// Copy the text inside the text field
-		navigator.clipboard.writeText(copyText.value);
+		navigator.clipboard.writeText(censusRoot);
 	}
 
   return (
@@ -100,6 +92,7 @@ export default function MakeCensus() {
                         <input
                           type="text"
                           name="census-root"
+                          value={censusRoot}
                           disabled={ true }
                           id="census-root"
                           className="block w-full flex-1 rounded-none rounded-r-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"

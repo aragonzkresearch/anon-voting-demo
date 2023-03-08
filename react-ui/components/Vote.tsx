@@ -1,11 +1,13 @@
-import { VOTING_ADDR, IPFS_GATEWAY, SIGNING_TEXT, N_LEVELS, GAS_LIMIT } from "../hooks/settings";
+import { VOTING_ADDR, IPFS_GATEWAY, SIGNING_TEXT, N_LEVELS, VOTING_GAS_LIMIT } from "../hooks/settings";
 
+// @ts-ignore
 import { Census, buildCensus } from "clientlib";
 import { buildAnonVote } from "clientlib";
 
 import CastVote from "../components/CastVote";
 import ProcessList from "../components/ProcessList";
 
+import Script from 'next/script'
 import { useState } from 'react';
 import { ethers } from "ethers";
 
@@ -80,6 +82,7 @@ export default function Vote() {
 
 				console.log("av.castVote");
 				await av.castVote(
+					// @ts-ignore
 					snarkjs,
 					signer,
 					"/circuit16.zkey",
@@ -88,7 +91,7 @@ export default function Vote() {
 					census.root(),
 					merkelproof,
 					voteChoice,
-					GAS_LIMIT
+					VOTING_GAS_LIMIT
 				);
 
 /*
@@ -124,6 +127,7 @@ export default function Vote() {
 
   return (
     <>
+    	<Script src="/snarkjs.min.js" />
       <div className="mx-auto max-w-7xl py-6 sm:px-6 lg:px-8">
         <div className="md:grid md:grid-cols-3 md:gap-6">
           <div className="md:col-span-1">
