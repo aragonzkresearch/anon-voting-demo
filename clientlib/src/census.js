@@ -78,11 +78,11 @@ class Census {
 	}
 
 
-	static async buildFromPubKs(pubKeys, nLevels) {
+	static async buildFromCompPubKs(compPubKeys, nLevels) {
 		let pubKs = [];
 		let census = await buildCensus(nLevels);
-		for (let i=0; i<pubKeys.length; i++) {
-			let compPubK = ffutils.leInt2Buff(BigInt(pubKeys[i]));
+		for (let i=0; i<compPubKeys.length; i++) {
+			let compPubK = ffutils.leInt2Buff(BigInt(compPubKeys[i]));
 			let pubK = census.babyjub.unpackPoint(compPubK);
 			pubKs.push(pubK);
 		}
@@ -92,13 +92,13 @@ class Census {
 
 	static async rebuildFromJson(jsonData, nLevels = 16) {
 		let compPubKs = JSON.parse(jsonData);
-		return await Census.buildFromPubKs(compPubKs, nLevels);
+		return await Census.buildFromCompPubKs(compPubKs, nLevels);
 	}
 
 	static async rebuildFromIPFS(ipfsGateway, ipfsHash, nLevels = 16) {
 		let res = await axios.get(`${ipfsGateway}/${ipfsHash}`);
 		let compPubKs = await res.data;
-		return await Census.buildFromPubKs(compPubKs, nLevels);
+		return await Census.buildFromCompPubKs(compPubKs, nLevels);
 	}
 }
 

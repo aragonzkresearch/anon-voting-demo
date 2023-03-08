@@ -1,31 +1,29 @@
+import { VOTING_ADDR, IPFS_GATEWAY, SIGNING_TEXT, N_LEVELS, GAS_LIMIT } from "../hooks/settings";
+
 import { Census, buildCensus } from "clientlib";
-import { AnonVote, buildAnonVote } from "clientlib";
+import { buildAnonVote } from "clientlib";
 
 import CastVote from "../components/CastVote";
 import ProcessList from "../components/ProcessList";
 
-import { Fragment, useRef, useState } from 'react';
-import Script from 'next/script';
+import { useState } from 'react';
 import { ethers } from "ethers";
 
 export default function Vote() {
 	const [open, setOpen] = useState(false);
 	const [procId, setProcId] = useState();
 	const [croot, setCroot] = useState();
+	const [ipfs, setIpfs] = useState();
 
-    let openModal = (childData, childRoot) => {
+    let openModal = (childData, childRoot, childIpfs) => {
 		setProcId(childData);
 		setCroot(childRoot);
+		setIpfs(childIpfs);
 		setOpen(!open)
     }
 
-	const doTheVote = async (id, keyArray, voteChoice) => {
+	const doTheVote = async (id, keyArray, ipfsHash, voteChoice) => {
 		if (window.ethereum) {
-			const VOTING_ADDR = "0xcf66FfaFe927202a71F2C0918e83FfBF19fE15e8";
-			const SIGNING_TEXT = "ANONVOTE KEY GENERATION SECRET";
-			const N_LEVELS = 16;
-			const GAS_LIMIT = 300000;
-
 			try {
 				// POTENTIAL PROBLEM, only during testing, I think.
 				// ISSUE: https://hardhat.org/hardhat-network/docs/metamask-issue
@@ -40,16 +38,48 @@ export default function Vote() {
 				await av.connect(web3gw, VOTING_ADDR);
 
 				// Generate the keys
+				console.log("generate the keys");
 				const signature = await signer.signMessage(SIGNING_TEXT);
 				const {privateKey, publicKey, compressedPublicKey } = await av.generateKey(signature);
 
 				// Build the Census
-				const census = await buildCensus(N_LEVELS);
-				await census.addCompKeys(keyArray);
+				console.log("build census");
+				let census = await buildCensus(N_LEVELS);
+				if (typeof ipfsHash === 'undefined') {
+					console.log("	ipfshash==undefined, census.addCompKeys(keyArray)");
+					await census.addCompKeys(keyArray);
+				} else {
+					// TODO: this now works, but in next iteration needs to be simplified
+					console.log("	rebuilding census from ipfs");
+					census = await Census.rebuildFromIPFS(IPFS_GATEWAY, ipfsHash, N_LEVELS);
+					// recreate keyArray from census.publicKeys
+					console.log("	obtained the census from ipfs, now recreating the keyArray");
+					let exportedCensus = census.export();
+					keyArray = JSON.parse(exportedCensus);
+				}
+				console.log("keyArray", keyArray);
 
-				const merkelproof = await census.generateProof(0);
+				// Check that the uploaded census matches process
+				console.log("get process data");
+				const processData = await av.getProcess(id);
+				if (processData.censusRoot.toString() !== census.root()) {
+					console.log("ERR: this census does not match chosen process");
+					return;
+				}
 
-				const proofAndPI = await av.castVote(
+				// Find where this user's key is in census
+				console.log("get user index in census");
+				const myIndex = keyArray.indexOf(compressedPublicKey); // TODO - keyArray is undefined if ipfsHash is defined
+				if (myIndex < 0) {
+					console.log("ERR: You are not part of census");
+					return;
+				}
+
+				console.log("generateProof");
+				const merkelproof = await census.generateProof(myIndex);
+
+				console.log("av.castVote");
+				await av.castVote(
 					snarkjs,
 					signer,
 					"/circuit16.zkey",
@@ -73,12 +103,17 @@ export default function Vote() {
 				);
 */
 
+				setOpen(false);
+				/* the next if-else has no effect as proofAndPI
+				 * is not currently returned from the castVote
+				 * method
 				if (proofAndPI.proof !== null) {
 					setOpen(false);
 				} else {
 					setOpen(false);
 					alert("Casting vote failed");
 				}
+				*/
 			} catch (error) {
 				setOpen(false);
 				console.log({ error })
@@ -102,7 +137,7 @@ export default function Vote() {
           </div>
         </div>
         <div className="mt-5 md:col-span-2 md:mt-0">
-          <div className="sm:rounded-lg border-t border-transparent overflow-hidden">
+          <div className="sm:rounded-lg border-t border-transparent overflow-scroll">
 			<ProcessList
 				clickAction={ openModal }
 				actionIcon={"vote"}
@@ -116,6 +151,7 @@ export default function Vote() {
 			close={() => setOpen(false)}
 			voteAction={ doTheVote }
 			id={procId}
+			ipfs={ipfs}
 		/>
     </>
   )

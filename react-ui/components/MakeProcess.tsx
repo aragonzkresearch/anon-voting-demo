@@ -53,8 +53,6 @@ export default function MakeProcess() {
 				const minTurnout = document.getElementById('min-turnout').value;
 				const minMajority = document.getElementById('min-majority').value;
 
-                console.log(censusIpfs + " " + censusRoot)
-
 				// Create the proccess
 				const processID = await av.newProcess(topic, censusIpfs, censusRoot, startBlock, endBlock, minTurnout, minMajority, signer);
 				setNewProcessId(processID);
@@ -133,6 +131,7 @@ export default function MakeProcess() {
                                 id="census-ipfs-hash"
                                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                             />
+							<p className="mt-4 text-xs text-gray-600 px-4"><i>If used. You must handle the upload yourself, seperately.</i></p>
                         </div>
                     </div>
                   <div className="grid grid-cols-6 gap-6">
