@@ -38,18 +38,29 @@ export default function Vote() {
 				await av.connect(web3gw, VOTING_ADDR);
 
 				// Generate the keys
+				console.log("generate the keys");
 				const signature = await signer.signMessage(SIGNING_TEXT);
 				const {privateKey, publicKey, compressedPublicKey } = await av.generateKey(signature);
 
 				// Build the Census
+				console.log("build census");
 				let census = await buildCensus(N_LEVELS);
 				if (typeof ipfsHash === 'undefined') {
+					console.log("	ipfshash==undefined, census.addCompKeys(keyArray)");
 					await census.addCompKeys(keyArray);
 				} else {
+					// TODO: this now works, but in next iteration needs to be simplified
+					console.log("	rebuilding census from ipfs");
 					census = await Census.rebuildFromIPFS(IPFS_GATEWAY, ipfsHash, N_LEVELS);
+					// recreate keyArray from census.publicKeys
+					console.log("	obtained the census from ipfs, now recreating the keyArray");
+					let exportedCensus = census.export();
+					keyArray = JSON.parse(exportedCensus);
 				}
+				console.log("keyArray", keyArray);
 
 				// Check that the uploaded census matches process
+				console.log("get process data");
 				const processData = await av.getProcess(id);
 				if (processData.censusRoot.toString() !== census.root()) {
 					console.log("ERR: this census does not match chosen process");
@@ -57,14 +68,17 @@ export default function Vote() {
 				}
 
 				// Find where this user's key is in census
+				console.log("get user index in census");
 				const myIndex = keyArray.indexOf(compressedPublicKey); // TODO - keyArray is undefined if ipfsHash is defined
 				if (myIndex < 0) {
 					console.log("ERR: You are not part of census");
 					return;
 				}
 
+				console.log("generateProof");
 				const merkelproof = await census.generateProof(myIndex);
 
+				console.log("av.castVote");
 				await av.castVote(
 					snarkjs,
 					signer,
