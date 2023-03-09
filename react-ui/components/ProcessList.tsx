@@ -21,9 +21,11 @@ import React, { useState, useEffect } from 'react';
 export default function ProcessList({clickAction, actionIcon}) {
   const [needData, setNeedData] = useState(true);
   const [processes, setProcesses] = useState([]);
+  const [blocknum, setBlocknum] = useState(0);
 
   // Similar to componentDidMount and componentDidUpdate:
   useEffect(() => {
+	getBlockNum();
 	setNeedData(true); 
 
 	const fetchData = async () => {
@@ -39,10 +41,11 @@ export default function ProcessList({clickAction, actionIcon}) {
 		const processList = await av.getProcesses();
 
 		if (needData && processList.length > 0 ) {
-			setProcesses(processList);
+			setProcesses(processList.reverse());
 		}
 		setNeedData(false);
 	}
+
 
 	// call the function
 	fetchData().catch(console.error);
@@ -51,6 +54,46 @@ export default function ProcessList({clickAction, actionIcon}) {
 	return () => setNeedData(false);
   }, []);
 
+	const getBlockNum = async () => {
+		if (window.ethereum) {
+			try {
+				const web3gw = new ethers.providers.Web3Provider(window.ethereum)
+				const curBlock = await web3gw.getBlockNumber();
+
+				setBlocknum(curBlock);
+			} catch (error) {
+				console.log({ error });
+			}
+		}
+	}
+
+	const statusText = (stat, start, end) => {
+		if (!stat) {
+			if (start < blocknum && end > blocknum) {
+				return "Voting Open"
+			} else if (start > blocknum) {
+				return "Pending"
+			} else if (end < blocknum) {
+				return "Need Finalize"
+			}
+		} else {
+			return "Closed"
+		}
+	}
+
+	const statusStyle = (stat, start, end) => {
+		let color = "red";
+		if (!stat) {
+			if (start < blocknum && end > blocknum) {
+				color = "green";
+			} else if (start > blocknum) {
+				color = "blue";
+			} else if (end < blocknum) {
+				color = "orange";
+			}
+		}
+			return "px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-" + color + "-100 text-" + color + "-800"
+	}
   return (
     <div className="flex flex-col">
       <div className="-my-2 border-transparent overflow-x-auto sm:-mx-6 lg:-mx-8">
@@ -136,9 +179,8 @@ export default function ProcessList({clickAction, actionIcon}) {
                       <div className="text-xs font-small text-gray-500">ID: {process.processID}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={process.closed ? "px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800" : 
-                      	"px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800"} >
-                        {process.closed ? "Closed" : "Open"}
+                      <span className= { statusStyle(process.closed, process.startBlock, process.endBlock) } >
+                        { statusText(process.closed, process.startBlock, process.endBlock) }
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">

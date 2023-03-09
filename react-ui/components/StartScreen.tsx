@@ -28,6 +28,9 @@ export default function StartScreen() {
               Several protocols are experimenting with using both off chain and on chain voting for governance in the future.
               This one works today!
             </p>
+            <h4 className="m-5 text-1xl font-medium tracking-tight text-white sm:text-1xl py-1 px-2 rounded-md border border-amber-300">
+              <span className="text-amber-100 text-xl">⚠️</span>&nbsp;This test process requires you to be connected to the Sepolia testnet via Metamask.
+            </h4>
             <div className="mt-10 flex items-center justify-center gap-x-6 lg:justify-end">
 				<Link href="/instructions">
                 <div style={{cursor: 'pointer'}} className="rounded-md bg-white px-3.5 py-1.5 text-black border border-white hover:text-white hover:bg-transparent font-semibold leading-7 text-gray-900 shadow-sm hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">

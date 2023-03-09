@@ -1,3 +1,4 @@
+import { VOTING_ADDR } from "../hooks/settings";
 import { useListen } from "../hooks/useListen";
 import { useMetamask } from "../hooks/useMetamask";
 import { Loading } from "./Loading";
@@ -111,6 +112,15 @@ export default function MenuBar({page}) {
 					</a>
 					</Link>
                         ))}
+                      </div>
+                    </div>
+                    <div className="hidden md:block">
+                      <div className="ml-10 flex items-baseline space-x-4">
+					<Link href={"https://sepolia.etherscan.io/address/" + VOTING_ADDR} key="etherscan" passHref>
+					<a className="border border-white bg-gray-200 text-black hover:text-white hover:bg-gray-800 block px-2 py-1 rounded-md text-base font-medium" target="_blank">
+						View Contract on Etherscan
+					</a>
+					</Link>
                       </div>
                     </div>
                   </div>
