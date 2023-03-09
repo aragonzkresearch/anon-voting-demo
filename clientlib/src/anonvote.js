@@ -166,6 +166,10 @@ class AnonVote {
 		};
 	}
 
+	async getLastProcessID() {
+		return await this.anonVoting.lastProcessID();
+	}
+
 	// Method to get all the processes in the AnonVoting contract
 	async getProcesses() {
 		if (!this.web3gw) {
@@ -194,13 +198,8 @@ class AnonVote {
 
 		const anonVotingWithSigner = this.anonVoting.connect(signer);
 
-
-
-		await anonVotingWithSigner.newProcess(topic, censusIpfsHash, censusRoot, startBlock, endBlock, minMajority, minTurnout);
-
-
-		// Return the created processID
-		return  await this.anonVoting.lastProcessID();
+		let tx = await anonVotingWithSigner.newProcess(topic, censusIpfsHash, censusRoot, startBlock, endBlock, minMajority, minTurnout);
+		return  tx.hash;
 	}
 
 	getMerkleProof() {}
@@ -245,9 +244,10 @@ class AnonVote {
 		if (!isValid) throw new Error("The generated proof is not valid");
 
 		// call contract vote method sending the proof
-		await anonVotingWithSigner.vote(processID, voteBool,
+		let tx = await anonVotingWithSigner.vote(processID, voteBool,
 			proofAndPI.publicInputs.nullifier, proofAndPI.proof[0],
 			proofAndPI.proof[1], proofAndPI.proof[2], {gasLimit: gasLimit});
+		return  tx.hash;
 	}
 
 	// Method to check if a voter has already voted in a process
