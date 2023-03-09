@@ -139,7 +139,12 @@ export default function CastVote({open, close, voteAction, id, ipfs}) {
                 <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
                     <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
 				{ showSpinner && (
-<div className="inline-block h-6 w-6 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] text-primary motion-reduce:animate-[spin_1.5s_linear_infinite]" role="status"></div>
+					<div className="flex place-items-end items-center">
+					<div className="px-4">
+					<p className="text-m text-gray-800 overflow-hidden px-4 items-center"><span className="text-red-800 text-2xl">⚠️</span>&nbsp;ZK proof being prepared.&nbsp;</p>
+					</div>
+					<div className="inline-block h-6 w-6 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] text-primary motion-reduce:animate-[spin_1.5s_linear_infinite]" role="status"></div>
+					</div>
 				)}
 { showButtons && (
                   <button

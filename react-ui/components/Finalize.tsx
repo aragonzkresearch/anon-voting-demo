@@ -29,7 +29,7 @@ export default function Finalize() {
           </div>
         </div>
         <div className="mt-5 md:col-span-2 md:mt-0">
-          <div className="sm:rounded-lg border-t border-transparent overflow-hidden">
+          <div className="sm:rounded-lg border-t border-transparent overflow-scroll h-screen">
 			<ProcessList
 				clickAction={handleCallback}
 				actionIcon={'finalize'}
