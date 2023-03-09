@@ -6,6 +6,7 @@ import { Dialog, Transition } from '@headlessui/react'
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 
 export default function FinalizePopup({open, close, id}) {
+	const [showSuccess, setShowSuccess] = useState(false);
 
 	const cancelButtonRef = useRef(null)
 
@@ -22,11 +23,7 @@ export default function FinalizePopup({open, close, id}) {
 
 			let finalized = await av.closeProcess(id, signer);
 
-			if (finalized.hash !== "") {
-				return setTimeout(function() {
-					close;
-				}, 2000);
-			}
+			setShowSuccess(true);
 		} catch (err) {
 			console.error(err);
 		}
@@ -73,9 +70,7 @@ export default function FinalizePopup({open, close, id}) {
 							Close out this process?
                         </p>
                         <p className="text-m text-gray-500">
-                          Process Id:
-							<br />
-							{id}
+                          Process Id:&nbsp; {id}
                         </p>
                       </div>
                     </div>
@@ -83,6 +78,31 @@ export default function FinalizePopup({open, close, id}) {
                 </div>
                 <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
                     <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+						{showSuccess && (
+							<div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
+								<strong className="font-bold">Success!</strong>
+								<span className="block sm:inline">&nbsp; Finalization sent for process ID: {id}</span>
+								<span className="absolute top-0 bottom-0 right-0 px-4 py-3"></span>
+							</div>
+						)}
+                  </div>
+                </div>
+                <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+                    <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+						{showSuccess && (
+           			       <button
+                   			 type="button"
+       			             className="inline-flex w-full justify-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm"
+               			     onClick={close}
+             			     >
+               			     Close&nbsp;
+       			           </button>
+						)}
+           		   </div>
+                </div>
+                <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+                    <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+			{!showSuccess && (
                   <button
                     type="button"
                     className="inline-flex w-full justify-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm"
@@ -90,8 +110,10 @@ export default function FinalizePopup({open, close, id}) {
                   >
                     Cancel&nbsp;
                   </button>
+			)}
                   </div>
                     <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+			{!showSuccess && (
                   <button
                     type="button"
                     className="mt-3 inline-flex w-full justify-center rounded-md border border-transparent bg-green-500 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
@@ -102,6 +124,7 @@ export default function FinalizePopup({open, close, id}) {
   <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
 </svg>
                   </button>
+			)}
                   </div>
                 </div>
               </Dialog.Panel>
