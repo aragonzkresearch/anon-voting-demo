@@ -15,7 +15,7 @@ export default function CastVote({open, close, voteAction, id, ipfs}) {
 		setFile(null);
 		setShowSpinner(false);
 		setShowButtons(false);
-		if (typeof ipfs != 'undefined') {
+		if (typeof ipfs != 'undefined' && ipfs !== "") {
             		setShowButtons(true);
         	}
 	}, [close]);
@@ -111,7 +111,7 @@ export default function CastVote({open, close, voteAction, id, ipfs}) {
                         <p className="text-m text-black-500">
 							How would you like to vote on process: #<b>{id}</b>
                         </p>
-						{(typeof ipfs === 'undefined') && (
+						{(typeof ipfs === 'undefined' || ipfs === "") && (
 		                <div className="mt-2 bg-gray-50 px-4 py-3 sm:flex sm:flex-row sm:px-6 items-center">
                           <div className="mt-2">
                             <p className="text-m text-gray-800 overflow-hidden px-4">

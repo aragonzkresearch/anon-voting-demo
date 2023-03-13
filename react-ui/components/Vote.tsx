@@ -48,7 +48,7 @@ export default function Vote() {
 				// Build the Census
 				console.log("build census");
 				let census = await buildCensus(N_LEVELS);
-				if (typeof ipfsHash === 'undefined') {
+				if (typeof ipfsHash === 'undefined' || ipfsHash === "") {
 					console.log("	ipfshash==undefined, census.addCompKeys(keyArray)");
 					await census.addCompKeys(keyArray);
 				} else {
