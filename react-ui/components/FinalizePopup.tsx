@@ -1,4 +1,5 @@
 import { VOTING_ADDR, SIGNING_TEXT, N_LEVELS } from "../hooks/settings";
+import { isConnected } from "../hooks/connection";
 import { AnonVote, buildAnonVote } from "clientlib";
 import { ethers } from "ethers";
 import { Fragment, useRef, useState } from 'react'
@@ -7,25 +8,33 @@ import { ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 
 export default function FinalizePopup({open, close, id}) {
 	const [showSuccess, setShowSuccess] = useState(false);
+	const [errorText, setErrorText] = useState("");
 
 	const cancelButtonRef = useRef(null)
 
 	const voteFinalize = async () => {
-		try {
-			const currentChain = await window.ethereum.request({ method: 'eth_chainId' });
+		if (window.ethereum) {
+			try {
+				if (!await isConnected()) {
+					throw new Error("Wallet not connected. Please connect to Metamask");
+				}
 
-			const web3gw = new ethers.providers.Web3Provider(window.ethereum)
-			const signer = await web3gw.getSigner();
+				const currentChain = await window.ethereum.request({ method: 'eth_chainId' });
 
-			// Get stuff from the chain
-			const av = await buildAnonVote(currentChain, N_LEVELS);
-			await av.connect(web3gw, VOTING_ADDR);
+				const web3gw = new ethers.providers.Web3Provider(window.ethereum)
+				const signer = await web3gw.getSigner();
 
-			let finalized = await av.closeProcess(id, signer);
+				// Get stuff from the chain
+				const av = await buildAnonVote(currentChain, N_LEVELS);
+				await av.connect(web3gw, VOTING_ADDR);
 
-			setShowSuccess(true);
-		} catch (err) {
-			console.error(err);
+				let finalized = await av.closeProcess(id, signer);
+
+				setShowSuccess(true);
+			} catch (error) {
+				console.error(error);
+				setErrorText(error.message);
+			}
 		}
 	};
 
@@ -87,9 +96,9 @@ export default function FinalizePopup({open, close, id}) {
 						)}
                   </div>
                 </div>
+				{showSuccess && (
                 <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
                     <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-						{showSuccess && (
            			       <button
                    			 type="button"
        			             className="inline-flex w-full justify-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm"
@@ -97,9 +106,21 @@ export default function FinalizePopup({open, close, id}) {
              			     >
                			     Close&nbsp;
        			           </button>
-						)}
            		   </div>
                 </div>
+				)}
+				{(errorText !== "") && (
+               	 <div className="bg-gray-50 px-4 py-3 sm:px-6">
+					<div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+						<strong className="font-bold">Error!</strong>
+						<span className="block sm:inline">&nbsp; { errorText }.</span>
+						<span className="absolute top-0 bottom-0 right-0 px-4 py-3" onClick={ () => { setErrorText("")} }>
+							<svg className="fill-current h-6 w-6 text-red-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><title>Close</title><path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z"/></svg>
+  
+						</span>
+					</div>
+                </div>
+                    )}
                 <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
                     <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
 			{!showSuccess && (

@@ -1,4 +1,5 @@
 import { VOTING_ADDR, SIGNING_TEXT, N_LEVELS } from "../hooks/settings";
+import { isConnected } from "../hooks/connection";
 import React, { useState } from 'react';
 import { useEffect, Component } from 'react';
 // @ts-ignore
@@ -9,10 +10,15 @@ export default function KeyGen() {
 	const [buttonDisabled, setButtonDisabled] = useState(false);
 	const [pubKey, setPubKey] = useState("");
 	const [showCopy, setShowCopy] = useState(false);
+	const [errorText, setErrorText] = useState("");
 
 	const getPubKey = async () => {
 		if (window.ethereum) {
 			try {
+				if (!await isConnected()) {
+					throw new Error("Wallet not connected");
+				}
+
 				// POTENTIAL PROBLEM, only during testing, I think.
 				// ISSUE: https://hardhat.org/hardhat-network/docs/metamask-issue
 				const currentChain = await window.ethereum.request({ method: 'eth_chainId' });
@@ -31,9 +37,10 @@ export default function KeyGen() {
 				setPubKey(compressedPublicKey);
 				setButtonDisabled(true);
 			} catch (error) {
-				console.log({ error })
+				console.log({ error });
+				setErrorText(error.message);
 			}
-		}
+		} 
 	};
 
 	function copyAddress() {
@@ -109,6 +116,18 @@ export default function KeyGen() {
                     Generate Census Key
                   </button>
                 </div>
+				{(errorText !== "") && (
+               	 <div className="bg-gray-50 px-4 py-3 sm:px-6">
+					<div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+						<strong className="font-bold">Error!</strong>
+						<span className="block sm:inline">&nbsp; { errorText }.</span>
+						<span className="absolute top-0 bottom-0 right-0 px-4 py-3" onClick={ () => { setErrorText("")} }>
+							<svg className="fill-current h-6 w-6 text-red-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><title>Close</title><path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z"/></svg>
+  
+						</span>
+					</div>
+                </div>
+                    )}
                </div>
           </div>
         </div>
