@@ -1,4 +1,5 @@
 import { VOTING_ADDR, IPFS_GATEWAY, SIGNING_TEXT, N_LEVELS, VOTING_GAS_LIMIT } from "../hooks/settings";
+import { isConnected } from "../hooks/connection";
 
 // @ts-ignore
 import { Census, buildCensus } from "clientlib";
@@ -17,6 +18,7 @@ export default function Vote() {
 	const [croot, setCroot] = useState();
 	const [ipfs, setIpfs] = useState();
 	const [showVoteSuccess, setShowVoteSuccess] = useState(false);
+	const [errorText, setErrorText] = useState("");
 
     let openModal = (childData, childRoot, childIpfs) => {
 		setProcId(childData);
@@ -28,6 +30,9 @@ export default function Vote() {
 	const doTheVote = async (id, keyArray, ipfsHash, voteChoice) => {
 		if (window.ethereum) {
 			try {
+				if (!await isConnected()) {
+					throw new Error("Wallet not connected. Please connect to Metamask");
+				}
 				// POTENTIAL PROBLEM, only during testing, I think.
 				// ISSUE: https://hardhat.org/hardhat-network/docs/metamask-issue
 				const currentChain = await window.ethereum.request({ method: 'eth_chainId' });
@@ -72,7 +77,7 @@ export default function Vote() {
 
 				// Find where this user's key is in census
 				console.log("get user index in census");
-				const myIndex = keyArray.indexOf(compressedPublicKey); // TODO - keyArray is undefined if ipfsHash is defined
+				const myIndex = keyArray.indexOf(compressedPublicKey);
 				if (myIndex < 0) {
 					console.log("ERR: You are not part of census");
 					return;
@@ -125,7 +130,8 @@ export default function Vote() {
 			} catch (error) {
 				setOpen(false);
 				console.log({ error })
-				alert("Casting vote failed");
+				//alert("Casting vote failed");
+				setErrorText(error.message);
 			}
 		}
 	};
@@ -151,6 +157,18 @@ export default function Vote() {
 					<span className="absolute top-0 bottom-0 right-0 px-4 py-3"></span>
 				</div>
 			)}
+			{(errorText !== "") && (
+              	 <div className="bg-white bg-opacity-50 px-1 py-3 sm:px-6">
+					<div className="blink_me bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+						<strong className="font-bold">Error!</strong>
+						<span className="block sm:inline">&nbsp; { errorText }.</span>
+						<span className="absolute top-0 bottom-0 right-0 px-4 py-3" onClick={ () => { setErrorText("")} }>
+							<svg className="fill-current h-6 w-6 text-red-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><title>Close</title><path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z"/></svg>
+  
+						</span>
+					</div>
+                </div>
+            )}
         </div>
         <div className="mt-5 md:col-span-2 md:mt-0">
           <div className="sm:rounded-lg border-t border-transparent overflow-scroll h-screen">

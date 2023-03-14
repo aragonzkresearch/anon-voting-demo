@@ -56,23 +56,6 @@ export default function MenuBar({page}) {
     dispatch({ type: "disconnect" });
   };
 
-  const handleAddUsdc = async () => {
-    dispatch({ type: "loading" });
-
-    await window.ethereum.request({
-      method: "wallet_watchAsset",
-      params: {
-        type: "ERC20",
-        options: {
-          address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
-          symbol: "USDC",
-          decimals: 18,
-          image: "https://cryptologos.cc/logos/usd-coin-usdc-logo.svg?v=023",
-        },
-      },
-    });
-  };
-
   const router = useRouter();
   const currentRoute = router.pathname;
 
