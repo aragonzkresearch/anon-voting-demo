@@ -68,6 +68,16 @@ a {
 	color: rgb(22 101 52);
 }
 
+.blink_me {
+  animation: blinker 0.5s linear 5;
+}
+
+@keyframes blinker {
+  50% {
+    opacity: 0;
+  }
+}
+
 @media (prefers-color-scheme: dark) {
   html {
     color-scheme: dark;
