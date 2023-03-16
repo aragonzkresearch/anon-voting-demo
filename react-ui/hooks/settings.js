@@ -1,8 +1,6 @@
 const VOTING_ADDR = "0x51506Ad37DdA1DBD6e4429A74B4b005C87487de8";
 const IPFS_GATEWAY = "https://ipfs.io/ipfs";
 const N_LEVELS = 16;
-// For our testing
-//const SIGNING_TEXT = "ANONVOTE KEY GENERATION SECRET";
 const VOTING_GAS_LIMIT = 500000;
 
 // For the demo
