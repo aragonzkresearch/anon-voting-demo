@@ -17,6 +17,11 @@ import {wasm} from "circom_tester";
 const wasm_tester = wasm;
 import * as snarkjs from "snarkjs";
 
+// needed for circuitPrivK
+import createBlakeHash from "blake-hash";
+import { utils as ffutils} from 'ffjavascript';
+import {Scalar} from "ffjavascript";
+
 import {buildAnonVote} from "../src/anonvote.js";
 import {buildCensus} from "../src/census.js";
 
@@ -65,11 +70,12 @@ describe("ClientLib", function () {
 			const census = await buildCensus(nLevels);
 
 			// simulate key generation
-			const privateKey = fromHexString(
-				"0001020304050607080900010203040506070809000102030405060708090000",
-			);
+			const privateKey = Buffer.from("0001020304050607080900010203040506070809000102030405060708090021", "hex");
+			const pvk    = av.eddsa.pruneBuffer(createBlakeHash("blake512").update(privateKey).digest().slice(0,32));
+			const circuitPrivateKey      = Scalar.shr(ffutils.leBuff2int(pvk), 3);
 			const publicKey = av.eddsa.prv2pub(privateKey);
 			av.privateKey = privateKey;
+			av.circuitPrivateKey = circuitPrivateKey;
 			av.publicKey = publicKey;
 
 			// gen other pubKeys
@@ -102,11 +108,12 @@ describe("ClientLib", function () {
 			const census = await buildCensus(nLevels);
 
 			// simulate key generation
-			const privateKey = fromHexString(
-				"0001020304050607080900010203040506070809000102030405060708090000",
-			);
+			const privateKey = Buffer.from("0001020304050607080900010203040506070809000102030405060708090021", "hex");
+			const pvk    = av.eddsa.pruneBuffer(createBlakeHash("blake512").update(privateKey).digest().slice(0,32));
+			const circuitPrivateKey = Scalar.shr(ffutils.leBuff2int(pvk), 3);
 			const publicKey = av.eddsa.prv2pub(privateKey);
 			av.privateKey = privateKey;
+			av.circuitPrivateKey = circuitPrivateKey;
 			av.publicKey = publicKey;
 
 			// gen other pubKeys
@@ -131,6 +138,7 @@ describe("ClientLib", function () {
 			const proofAndPI = await av.genZKProof(snarkjs, circuit.zkey,
 				circuit.witnessCalcWasm, processID,
 				census.root(), merkleproof, vote);
+			// console.log(JSON.stringify(proofAndPI));
 
 			let p = proofAndPI.proof;
 			let proofNoSolidity = { // proof in snarkjs expected format
@@ -400,11 +408,12 @@ describe("ClientLib", function () {
 
 
 			// simulate key generation
-			const privateKey = fromHexString(
-				"0001020304050607080900010203040506070809000102030405060708090000",
-			);
+			const privateKey = Buffer.from("0001020304050607080900010203040506070809000102030405060708090021", "hex");
+			const pvk    = av.eddsa.pruneBuffer(createBlakeHash("blake512").update(privateKey).digest().slice(0,32));
+			const circuitPrivateKey      = Scalar.shr(ffutils.leBuff2int(pvk), 3);
 			const publicKey = av.eddsa.prv2pub(privateKey);
 			av.privateKey = privateKey;
+			av.circuitPrivateKey = circuitPrivateKey;
 			av.publicKey = publicKey;
 
 			// gen other pubKeys

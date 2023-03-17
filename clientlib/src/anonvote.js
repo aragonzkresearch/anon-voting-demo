@@ -2,6 +2,10 @@ import { buildPoseidonReference, buildEddsa, buildBabyjub } from "circomlibjs";
 import { utils as ffutils} from 'ffjavascript';
 import {ethers} from "ethers";
 
+// needed for circuitPrivK
+import createBlakeHash from "blake-hash";
+import {Scalar} from "ffjavascript";
+
 async function buildAnonVote(chainID, nLevels) {
 	const poseidon = await buildPoseidonReference();
 	const eddsa = await buildEddsa();
@@ -44,12 +48,15 @@ class AnonVote {
 	// The public key is computed from the private key using the BabyJubJub curve
 	async generateKey(signature) {
 		const privateKey = ethers.utils.keccak256(signature);
+		const pvk    = this.eddsa.pruneBuffer(createBlakeHash("blake512").update(privateKey).digest().slice(0,32));
+		const circuitPrivateKey      = Scalar.shr(ffutils.leBuff2int(pvk), 3);
 
 		// Compute the public key by hashing the private key to the BabyJubJub curve
 		const publicKey = this.eddsa.prv2pub(privateKey);
 
 		// Store the private and public key
 		this.privateKey = privateKey;
+		this.circuitPrivateKey = circuitPrivateKey;
 		this.publicKey = publicKey;
 
 
@@ -64,8 +71,7 @@ class AnonVote {
 		const nullifier = this.poseidon([
 			this.chainID,
 			processID,
-			this.publicKey[0],
-			this.publicKey[1],
+			this.circuitPrivateKey,
 		]);
 		return this.F.toObject(nullifier).toString();
 	}
@@ -88,9 +94,8 @@ class AnonVote {
 			weight: weight,
 			nullifier: nullifier,
 			vote: vote,
-			index: merkleproof.index, // private inputs
-			pubKx: this.F.toObject(this.publicKey[0]).toString(),
-			pubKy: this.F.toObject(this.publicKey[1]).toString(),
+			privK: this.circuitPrivateKey.toString(), // private inputs
+			index: merkleproof.index,
 			s: signature.S.toString(),
 			rx: this.F.toObject(signature.R8[0]).toString(),
 			ry: this.F.toObject(signature.R8[1]).toString(),
