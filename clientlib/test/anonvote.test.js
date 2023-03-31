@@ -278,7 +278,8 @@ describe("ClientLib", function () {
 			const signer = (await ethers.getSigners())[0];
 
 			// Create the process
-			const processID = await av.newProcess(topic, censusIPFSHash, censusRoot, startBlock, endBlock, minTurnout, minMajority, signer);
+			await av.newProcess(topic, censusIPFSHash, censusRoot, startBlock, endBlock, minTurnout, minMajority, signer);
+			const processID = await av.getLastProcessID();
 
 			return {av, processID, signer, web3gw, nLevels, topic, censusRoot, startBlock, endBlock, minTurnout, minMajority };
 		}
@@ -300,7 +301,8 @@ describe("ClientLib", function () {
 			const signer = (await ethers.getSigners())[0];
 
 			// Create the process
-			const processID = await av.newProcess(topic, censusIPFSHash, censusRoot, startBlock, endBlock, minTurnout, minMajority, signer);
+			await av.newProcess(topic, censusIPFSHash, censusRoot, startBlock, endBlock, minTurnout, minMajority, signer);
+			const processID = await av.getLastProcessID();
 			expect(processID).to.equal(1);
 
 			// // Get the process that was just created
@@ -336,7 +338,8 @@ describe("ClientLib", function () {
 			const signer = (await ethers.getSigners())[0];
 
 			// Create the process
-			const processID1 = await av.newProcess(topicOne, censusIPFSHashOne, censusRootOne, startBlockOne, endBlockOne, minTurnoutOne, minMajorityOne, signer);
+			await av.newProcess(topicOne, censusIPFSHashOne, censusRootOne, startBlockOne, endBlockOne, minTurnoutOne, minMajorityOne, signer);
+			const processID1 = await av.getLastProcessID();
 			expect(processID1).to.equal(1);
 
 			// Set the parameters for the second process
@@ -350,7 +353,8 @@ describe("ClientLib", function () {
 
 
 			// Create a second process
-			const processID2 = await av.newProcess(topicTwo, censusIPFSHashTwo, censusRootTwo, startBlockTwo, endBlockTwo, minTurnoutTwo, minMajorityTwo, signer);
+			await av.newProcess(topicTwo, censusIPFSHashTwo, censusRootTwo, startBlockTwo, endBlockTwo, minTurnoutTwo, minMajorityTwo, signer);
+			const processID2 = await av.getLastProcessID();
 			expect(processID2).to.equal(2);
 
 
@@ -443,7 +447,8 @@ describe("ClientLib", function () {
 			const signer = (await ethers.getSigners())[0];
 
 			// Create the process
-			const processID = await av.newProcess(topic, censusIPFSHash, censusRoot, startBlock, endBlock, minTurnout, minMajority, signer);
+			await av.newProcess(topic, censusIPFSHash, censusRoot, startBlock, endBlock, minTurnout, minMajority, signer);
+			const processID = await av.getLastProcessID();
 			expect(processID).to.equal(1);
 
 			// Skip to the start of the process
