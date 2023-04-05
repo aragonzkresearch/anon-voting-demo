@@ -26,8 +26,8 @@ export default function MakeProcess() {
 				//setEndBlockNum(curBlock + 300);
 				const curBlockPlusOneHour = curBlock + 300;
         
-        (document.getElementById('start-blocknum') as HTMLInputElement).value = (curBlock + 60).toString();
-        (document.getElementById('end-blocknum') as HTMLInputElement).value = curBlockPlusOneHour.toString();
+				(document.getElementById('start-blocknum') as HTMLInputElement).value = (curBlock + 60).toString();
+				(document.getElementById('end-blocknum') as HTMLInputElement).value = curBlockPlusOneHour.toString();
 			} catch (error) {
 				console.log({ error });
 			}
@@ -107,8 +107,8 @@ export default function MakeProcess() {
 					{showProcessId && (
 						<div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
 							<strong className="font-bold">Success!</strong>
-							<span className="block sm:inline">&nbsp; It worked. Process created.</span>
-							<span className="absolute top-0 bottom-0 right-0 px-4 py-3"></span>
+							<span className="block sm:inline">&nbsp; It worked. Process created.
+							<br />ProcessId: {newProcessId}</span>
 						</div>
                     )}
 				{(errorText !== "") && (

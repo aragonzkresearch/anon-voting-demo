@@ -11,10 +11,12 @@ import ProcessList from "../components/ProcessList";
 import Script from 'next/script'
 import { useState } from 'react';
 import { ethers } from "ethers";
+import Link from "next/link";
 
 export default function Vote() {
 	const [open, setOpen] = useState(false);
 	const [procId, setProcId] = useState();
+	const [voteTx, setVoteTx] = useState();
 	const [croot, setCroot] = useState();
 	const [ipfs, setIpfs] = useState();
 	const [showVoteSuccess, setShowVoteSuccess] = useState(false);
@@ -87,7 +89,7 @@ export default function Vote() {
 				const merkelproof = await census.generateProof(myIndex);
 
 				console.log("av.castVote");
-				await av.castVote(
+				let castTx = await av.castVote(
 					// @ts-ignore
 					snarkjs,
 					signer,
@@ -99,38 +101,16 @@ export default function Vote() {
 					voteChoice,
 					VOTING_GAS_LIMIT
 				);
-
-/*
-				const proofAndPI = await av.genZKProof(
-					snarkjs,
-					"/circuit16.zkey",
-					"/circuit16.wasm",
-					id,
-					census.root(),
-					merkelproof,
-					voteChoice
-				);
-*/
+				setVoteTx(castTx);
 
 				setOpen(false);
 				setShowVoteSuccess(true)
 				return setTimeout(function() {
                     setShowVoteSuccess(false);
-                }, 3000);
-				/* the next if-else has no effect as proofAndPI
-				 * is not currently returned from the castVote
-				 * method
-				if (proofAndPI.proof !== null) {
-					setOpen(false);
-				} else {
-					setOpen(false);
-					alert("Casting vote failed");
-				}
-				*/
+                }, 6000);
 			} catch (error) {
 				setOpen(false);
 				console.log({ error })
-				//alert("Casting vote failed");
 				setErrorText(error.message);
 			}
 		}
@@ -150,13 +130,6 @@ export default function Vote() {
               Choose one of the processes from the list if you would like to place your vote. Of course, you must be in the census for the chosen process.
             </p>
           </div>
-			{showVoteSuccess && (
-				<div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
-					<strong className="font-bold">Success!</strong>
-					<span className="block sm:inline">&nbsp; Your vote has been cast for process ID: {procId}</span>
-					<span className="absolute top-0 bottom-0 right-0 px-4 py-3"></span>
-				</div>
-			)}
 			{(errorText !== "") && (
               	 <div className="bg-white bg-opacity-50 px-1 py-3 sm:px-6">
 					<div className="blink_me bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
@@ -171,6 +144,20 @@ export default function Vote() {
             )}
         </div>
         <div className="mt-5 md:col-span-2 md:mt-0">
+			{showVoteSuccess && (
+				<div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
+					<strong className="font-bold">Success!</strong>
+					<span className="block sm:inline">
+					&nbsp; Your vote has been cast for process ID: {procId}
+					<br />
+					<Link href={"https://sepolia.etherscan.io/tx/" + voteTx} key="etherscan" passHref>
+					<a className="border border-white bg-gray-200 text-black hover:text-white hover:bg-gray-800 block px-2 py-1 rounded-md text-base font-medium" target="_blank">
+						Voting Tx: {voteTx}
+					</a>
+					</Link>
+					</span>
+				</div>
+			)}
           <div className="sm:rounded-lg border-t border-transparent overflow-scroll h-screen">
 			<ProcessList
 				clickAction={ openModal }
